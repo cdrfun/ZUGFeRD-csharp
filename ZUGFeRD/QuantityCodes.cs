@@ -41,9 +41,27 @@ namespace s2industries.ZUGFeRD
     public enum QuantityCodes
     {
         /// <summary>
-        /// Unknown/ invalid quantity code
+        /// megajoule
         /// </summary>
-        Unknown = 0,
+        [EnumStringValue("3B")]
+        _3B,
+
+        /// <summary>
+        /// part per million
+        /// </summary>
+        [EnumStringValue("59")]
+        _59,
+
+        /// <summary>
+        /// Bulk pack
+        /// </summary>
+        [EnumStringValue("AB")]
+        AB,
+
+        /// <summary>
+        /// millisecond
+        /// </summary>
+        C26,
 
         /// <summary>
         /// Eins (Stück)
@@ -51,11 +69,18 @@ namespace s2industries.ZUGFeRD
         ///
         /// Previously, PCE was also used. This has been removed.
         /// </summary>
+        [EnumStringValue("C62", "PCE")]
         C62,
+
+        /// <summary>
+        /// degree Celsius
+        /// </summary>
+        CEL,
 
         /// <summary>
         /// centigram; Zentigramm
         /// </summary>
+        [EnumStringValue("CGM")]
         CGM,
 
         /// <summary>
@@ -84,6 +109,11 @@ namespace s2industries.ZUGFeRD
         /// A unit of count defining the number of hundred-packs (hundred-pack: set of one hundred items packaged together).
         /// </summary>
         CNP,
+
+        /// <summary>
+        /// volt - ampere
+        /// </summary>
+        D46,
 
         /// <summary>
         /// Tag
@@ -117,6 +147,11 @@ namespace s2industries.ZUGFeRD
         EA,
 
         /// <summary>
+        /// gigajoule
+        /// </summary>
+        GV,
+
+        /// <summary>
         /// Piece: A unit of count defining the number of pieces (piece: a single item, article or exemplar).
         /// </summary>
         /// <seealso cref="QuantityCodes.C62"/>
@@ -126,6 +161,7 @@ namespace s2industries.ZUGFeRD
         /// square hectometre
         /// Abbreviation: ha
         /// </summary>
+        [EnumStringValue("H18", "HAR")]
         H18,
 
         /// <summary>
@@ -146,10 +182,43 @@ namespace s2industries.ZUGFeRD
         IE,
 
         /// <summary>
+        /// lux
+        /// </summary>
+        LUX,
+
+        /// <summary>
+        /// kilowatt demand
+        /// A unit of measure defining the power load measured at predetermined intervals.
+        /// </summary>
+        K1,
+
+        /// <summary>
+        /// kilovolt ampere reactive hour
+        /// A unit of measure defining the accumulated reactive energy equal to one kilovolt ampere of reactive power per hour.
+        /// </summary>
+        K3,
+
+        /// <summary>
+        /// standard acceleration of free fall
+        /// </summary>
+        K40,
+
+        /// <summary>
         /// Kilogramm
         /// Abkürzung: kg
         /// </summary>
         KGM,
+
+        /// <summary>
+        /// kilojoule
+        /// </summary>
+        KJO,
+
+        /// <summary>
+        /// kilovar
+        /// Abkürzung: kVAR
+        /// </summary>
+        KVR,
 
         /// <summary>
         /// Hundred
@@ -166,6 +235,7 @@ namespace s2industries.ZUGFeRD
         /// Kilometer
         /// Abkürzung: km (Rec20r13) für XRechnung
         /// </summary>
+        [EnumStringValue("KMT", "KTM")]
         KMT,
 
         /// <summary>
@@ -191,6 +261,23 @@ namespace s2industries.ZUGFeRD
         /// Abkürzung: l
         /// </summary>
         LTR,
+
+        /// <summary>
+        /// megavolt ampere reactive hour
+        /// A unit of electrical reactive power defining the total amount of reactive power across a power system.
+        /// </summary>
+        MAH,
+
+        /// <summary>
+        /// megawatt
+        /// A unit of power defining the rate of energy transferred or consumed when a current of 1000 amperes flows due to a potential of 1000 volts at unity power factor.
+        /// </summary>
+        MAW,
+
+        /// <summary>
+        /// millibar
+        /// </summary>
+        MBR,
 
         /// <summary>
         /// Minute
@@ -305,7 +392,8 @@ namespace s2industries.ZUGFeRD
         /// A unit of count defining the number of pairs (pair: item described by two's).
         ///
         /// Previously, NPR was used to indicate pairs. This has been removed.
-        /// </remarks>        
+        /// </remarks>
+        [EnumStringValue("PR")]
         PR,
 
         /// <summary>
@@ -345,6 +433,14 @@ namespace s2industries.ZUGFeRD
         /// Quarter (of a year)
         /// </summary>
         QAN,
+
+        /// <summary>
+        /// Halbjahr
+        /// Abkürzung: Halbjahre(e)
+        ///
+        /// Half (of a year)
+        /// </summary>
+        SAN,
 
         /// <summary>
         /// Sekunde
@@ -519,6 +615,7 @@ namespace s2industries.ZUGFeRD
         /// <summary>
         /// Block
         /// </summary>
+        [EnumStringValue("XOK", "D64")]
         XOK,
 
         /// <summary>
@@ -643,45 +740,111 @@ namespace s2industries.ZUGFeRD
         /// Mutually Defined
         /// </summary>
         ZZ,
-    }
 
+        /// <summary>
+        /// Metric Carat
+        /// </summary>
+        /// <remarks>
+        /// Einheit für die Masse von Edelsteinen. Abkürzung Kt oder ct (kein gesetzliches Einheitszeichen)
+        /// </remarks>
+        CTM,
 
-    internal static class QuantityCodesExtensions
-    {
-        public static QuantityCodes FromString(this QuantityCodes _, string s)
-        {
-            if (!string.IsNullOrWhiteSpace(s) && char.IsDigit(s[0]))
-            {
-                s = "_" + s;
-            }
+        /// <summary>
+        /// Ampoule, non-protected
+        /// </summary>
+        XAM,
 
-            if (Enum.TryParse(s, true, out QuantityCodes result))
-            {
-                return result;
-            }
+        /// <summary>
+        /// Ampoule, protected
+        /// </summary>
+        XAP,
 
-            // mapping of legacy unit codes
-            switch (s)
-            {
-                case "NPR":
-                    return QuantityCodes.PR;
-                case "PCE":
-                    return QuantityCodes.C62;
-                case "KTM":
-                    return QuantityCodes.KMT;
-                case "HAR":
-                    return QuantityCodes.H18;
-                case "D64":
-                    return QuantityCodes.XOK;
-                default:
-                    return QuantityCodes.Unknown;
-            }
-        } // !FromString()
+        /// <summary>
+        /// Balloon, non-protected
+        /// </summary>
+        XBF,
 
+        /// <summary>
+        /// Can, rectangular
+        /// </summary>
+        XCA,
 
-        public static string EnumToString(this QuantityCodes c)
-        {
-            return c == QuantityCodes.Unknown ? "ZZ" : c.ToString("g").Replace("_", "");
-        } // !ToString()
+        /// <summary>
+        /// Cask
+        /// </summary>
+        XCK,
+
+        /// <summary>
+        /// Cartridge
+        /// Package containing a charge such as propelling explosive for firearms or ink toner for a printer.
+        /// </summary>
+        XCQ,
+
+        /// <summary>
+        /// Case
+        /// </summary>
+        XCS,
+
+        /// <summary>
+        /// Can, cylindrical
+        /// </summary>
+        XCX,
+
+        /// <summary>
+        /// Flask
+        /// </summary>
+        XFL,
+
+        /// <summary>
+        /// Receptacle, glass
+        /// Containment vessel made of glass for retaining substances or articles.
+        /// </summary>
+        XGR,
+
+        /// <summary>
+        /// Unpacked or unpackaged
+        /// </summary>
+        XNE,
+
+        /// <summary>
+        /// Container, outer
+        /// A type of containment box that serves as the outer shipping container, not otherwise specified as transport equipment.
+        /// </summary>
+        XOU,
+
+        /// <summary>
+        /// Pouch
+        /// </summary>
+        XPO,
+
+        /// <summary>
+        /// Pot
+        /// </summary>
+        XPT,
+
+        /// <summary>
+        /// Pallet, wooden
+        /// </summary>
+        X8A,
+
+        /// <summary>
+        /// Crate, multiple layer, cardboard
+        /// </summary>
+        XDC,
+
+        /// <summary>
+        /// Cage, roll
+        /// </summary>
+        XCW,
+
+        /// <summary>
+        /// Sack, multi-wall
+        /// </summary>
+        XMS,
+
+        /// <summary>
+        /// ton-force (US short)
+        /// </summary>
+        L94
     }
 }

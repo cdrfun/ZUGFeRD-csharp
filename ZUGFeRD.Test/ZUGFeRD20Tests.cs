@@ -84,7 +84,8 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(loadedInvoice.TradeLineItems[1].AssociatedDocument.LineStatusReasonCode, null);
             Assert.AreEqual(loadedInvoice.TradeLineItems[2].AssociatedDocument.LineStatusCode, LineStatusCodes.DocumentationClaim);
             Assert.AreEqual(loadedInvoice.TradeLineItems[2].AssociatedDocument.LineStatusReasonCode, LineStatusReasonCodes.INFORMATION);
-        }
+        } // !TestLineStatusCode()
+
 
         [TestMethod]
         public void TestReferenceBasicInvoice()
@@ -214,7 +215,7 @@ namespace s2industries.ZUGFeRD.Test
                 sellerAssignedID: "TB100A4",
                 name: "Trennblätter A4",
                 billedQuantity: 20m,
-                unitCode: QuantityCodes.C62,
+                unitCode: QuantityCodes.H87,
                 netUnitPrice: 9.9m,
                 grossUnitPrice: 9.9m,
                 categoryCode: TaxCategoryCodes.S,
@@ -227,7 +228,7 @@ namespace s2industries.ZUGFeRD.Test
                 sellerAssignedID: "ARNR2",
                 name: "Joghurt Banane",
                 billedQuantity: 50m,
-                unitCode: QuantityCodes.C62,
+                unitCode: QuantityCodes.H87,
                 netUnitPrice: 5.5m,
                 grossUnitPrice: 5.5m,
                 categoryCode: TaxCategoryCodes.S,
@@ -509,7 +510,7 @@ namespace s2industries.ZUGFeRD.Test
 
             desc.ShipTo = new Party
             {
-                ID = new GlobalID(GlobalIDSchemeIdentifiers.Unknown, "123"),
+                ID = new GlobalID(null, "123"),
                 GlobalID = new GlobalID(GlobalIDSchemeIdentifiers.DUNS, "789"),
                 Name = "Ship To",
                 ContactName = "Max Mustermann",
@@ -521,7 +522,7 @@ namespace s2industries.ZUGFeRD.Test
 
             desc.ShipFrom = new Party
             {
-                ID = new GlobalID(GlobalIDSchemeIdentifiers.Unknown, "123"),
+                ID = new GlobalID(null, "123"),
                 GlobalID = new GlobalID(GlobalIDSchemeIdentifiers.DUNS, "789"),
                 Name = "Ship From",
                 ContactName = "Eva Musterfrau",
@@ -565,7 +566,7 @@ namespace s2industries.ZUGFeRD.Test
             desc.BillingPeriodStart = timestamp;
             desc.BillingPeriodEnd = timestamp.AddDays(14);
 
-            desc.AddTradeAllowanceCharge(false, 5m, CurrencyCodes.EUR, 15m, "Reason for charge", TaxTypes.AAB, TaxCategoryCodes.AB, 19m, AllowanceReasonCodes.Packaging);
+            desc.AddTradeCharge(5m, CurrencyCodes.EUR, 15m, "Reason for charge", TaxTypes.AAB, TaxCategoryCodes.AB, 19m, ChargeReasonCodes.HeatTreatment);
             desc.AddLogisticsServiceCharge(10m, "Logistics service charge", TaxTypes.AAC, TaxCategoryCodes.AC, 7m);
 
             desc.GetTradePaymentTerms().FirstOrDefault().DueDate = timestamp.AddDays(14);
@@ -583,7 +584,7 @@ namespace s2industries.ZUGFeRD.Test
 
             lineItem.AddAdditionalReferencedDocument("xyz", AdditionalReferencedDocumentTypeCode.ReferenceDocument, ReferenceTypeCodes.AAB, timestamp);
 
-            lineItem.UnitQuantity = 3m;
+            lineItem.NetQuantity = 3m;
             lineItem.ActualDeliveryDate = timestamp;
 
             lineItem.ApplicableProductCharacteristics.Add(new ApplicableProductCharacteristic
@@ -596,7 +597,7 @@ namespace s2industries.ZUGFeRD.Test
             lineItem.BillingPeriodEnd = timestamp.AddDays(10);
 
             lineItem.AddReceivableSpecifiedTradeAccountingAccount("987654");
-            lineItem.AddTradeAllowanceCharge(false, CurrencyCodes.EUR, 10m, 50m, "Reason: UnitTest", AllowanceReasonCodes.Packaging);
+            lineItem.AddTradeAllowance(CurrencyCodes.EUR, 10m, 50m, "Reason: UnitTest", AllowanceReasonCodes.SpecialRebate);
 
 
             MemoryStream ms = new MemoryStream();
@@ -718,7 +719,8 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(timestamp.AddDays(14), loadedInvoice.BillingPeriodEnd);
 
             //TradeAllowanceCharges
-            var tradeAllowanceCharge = loadedInvoice.GetTradeAllowanceCharges().FirstOrDefault(i => i.Reason == "Reason for charge");
+            Assert.AreEqual(loadedInvoice.GetTradeAllowances().Count, 0);
+            var tradeAllowanceCharge = loadedInvoice.GetTradeCharges().FirstOrDefault(i => i.Reason == "Reason for charge");
             Assert.IsNotNull(tradeAllowanceCharge);
             Assert.IsTrue(tradeAllowanceCharge.ChargeIndicator);
             Assert.AreEqual("Reason for charge", tradeAllowanceCharge.Reason);
@@ -727,7 +729,7 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(CurrencyCodes.EUR, tradeAllowanceCharge.Currency);
             Assert.AreEqual(19m, tradeAllowanceCharge.Tax.Percent);
             Assert.AreEqual(TaxTypes.AAB, tradeAllowanceCharge.Tax.TypeCode);
-            Assert.AreEqual(TaxCategoryCodes.AB, tradeAllowanceCharge.Tax.CategoryCode);
+            Assert.AreEqual(TaxCategoryCodes.AB, tradeAllowanceCharge.Tax.CategoryCode);            
 
             //ServiceCharges
             var serviceCharge = desc.ServiceCharges.FirstOrDefault(i => i.Description == "Logistics service charge");
@@ -774,7 +776,7 @@ namespace s2industries.ZUGFeRD.Test
             //GrossPriceProductTradePrice
             Assert.AreEqual(9.9m, loadedLineItem.GrossUnitPrice);
             Assert.AreEqual(QuantityCodes.H87, loadedLineItem.UnitCode);
-            Assert.AreEqual(3m, loadedLineItem.UnitQuantity);
+            Assert.AreEqual(3m, loadedLineItem.NetQuantity);
 
             //NetPriceProductTradePrice
             Assert.AreEqual(9.9m, loadedLineItem.NetUnitPrice);
@@ -817,9 +819,10 @@ namespace s2industries.ZUGFeRD.Test
             //Assert.AreEqual("987654", accountingAccount.TradeAccountID);
 
 
-            var lineItemTradeAllowanceCharge = loadedLineItem.GetTradeAllowanceCharges().FirstOrDefault(i => i.Reason == "Reason: UnitTest");
+            var lineItemTradeAllowanceCharge = loadedLineItem.GetTradeAllowanceCharges().FirstOrDefault(i => i.Reason == "Reason: UnitTest");            
             Assert.IsNotNull(lineItemTradeAllowanceCharge);
-            Assert.IsTrue(lineItemTradeAllowanceCharge.ChargeIndicator);
+            Assert.IsInstanceOfType<TradeAllowance>(lineItemTradeAllowanceCharge);
+            Assert.IsFalse(lineItemTradeAllowanceCharge.ChargeIndicator);
             Assert.AreEqual(10m, lineItemTradeAllowanceCharge.BasisAmount);
             Assert.AreEqual(50m, lineItemTradeAllowanceCharge.ActualAmount);
             Assert.AreEqual("Reason: UnitTest", lineItemTradeAllowanceCharge.Reason);
@@ -835,7 +838,7 @@ namespace s2industries.ZUGFeRD.Test
             desc.ApplicableTradeDeliveryTermsCode = TradeDeliveryTermCodes.CFR;
 
             MemoryStream ms = new MemoryStream();
-            desc.Save(ms, ZUGFeRDVersion.Version23, Profile.Extended);
+            desc.Save(ms, ZUGFeRDVersion.Version20, Profile.Extended);
 
             ms.Seek(0, SeekOrigin.Begin);
             StreamReader reader = new StreamReader(ms);

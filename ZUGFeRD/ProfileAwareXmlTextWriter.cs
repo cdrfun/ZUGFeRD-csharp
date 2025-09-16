@@ -39,6 +39,7 @@ namespace s2industries.ZUGFeRD
         private Stack<StackInfo> XmlStack = new Stack<StackInfo>();
         private Profile CurrentProfile = Profile.Unknown;
         private Dictionary<string, string> Namespaces = new Dictionary<string, string>();
+        private bool _AutomaticallyCleanInvalidXmlCharacters = false;
 
         /// <summary>
         /// In case we are writing raw values, the automatic indention of end elements might get broken.
@@ -47,7 +48,7 @@ namespace s2industries.ZUGFeRD
         private bool _NeedToIndentEndElement = false;
 
 
-        public ProfileAwareXmlTextWriter(string filename, System.Text.Encoding encoding, Profile profile)
+        public ProfileAwareXmlTextWriter(string filename, System.Text.Encoding encoding, Profile profile, bool automaticallyCleanInvalicXmlCharacters = false)
         {
             this.TextWriter = XmlWriter.Create(filename, new XmlWriterSettings()
             {
@@ -56,10 +57,11 @@ namespace s2industries.ZUGFeRD
             });
 
             this.CurrentProfile = profile;
-        }
+            this._AutomaticallyCleanInvalidXmlCharacters = automaticallyCleanInvalicXmlCharacters;
+        } // !ProfileAwareXmlTextWriter()
 
 
-        public ProfileAwareXmlTextWriter(System.IO.Stream w, Profile profile)
+        public ProfileAwareXmlTextWriter(System.IO.Stream w, Profile profile, bool automaticallyCleanInvalicXmlCharacters = false)
         {
             this.TextWriter = XmlWriter.Create(w, new XmlWriterSettings()
             {
@@ -67,19 +69,20 @@ namespace s2industries.ZUGFeRD
                 Indent = true
             });
             this.CurrentProfile = profile;
-        }
+            this._AutomaticallyCleanInvalidXmlCharacters = automaticallyCleanInvalicXmlCharacters;
+        } // !ProfileAwareXmlTextWriter()
 
 
         public void Close()
         {
             this.TextWriter?.Close();
-        }
+        } // !Close()
 
 
         public void Flush()
         {
             this.TextWriter?.Flush();
-        }
+        } // !Flush()
 
 
         public void WriteStartElement(string prefix, string localName, Profile profile = Profile.Unknown)
@@ -141,15 +144,41 @@ namespace s2industries.ZUGFeRD
 
         public void WriteOptionalElementString(string prefix, string tagName, string value, Profile profile = Profile.Unknown)
         {
-            if (!String.IsNullOrWhiteSpace(value))
+            if (String.IsNullOrWhiteSpace(value))
             {
-                WriteElementString(prefix, tagName, value, profile);
+                return;
             }
+
+            if (!_IsValidXmlString(value))
+            {
+                if (_AutomaticallyCleanInvalidXmlCharacters == true)
+                {
+                    value = _CleanInvalidXmlChars(value);                    
+                }
+                else
+                {
+                    throw new IllegalCharacterException($"'{value}' contains illegal characters for xml.");
+                }
+            }
+
+            WriteElementString(prefix, tagName, value, profile);
         } // !WriteOptionalElementString()
 
 
         public void WriteElementString(string prefix, string localName, string ns, string value, Profile profile = Profile.Unknown)
         {
+            if (!_IsValidXmlString(value))
+            {
+                if (_AutomaticallyCleanInvalidXmlCharacters == true)
+                {
+                    value = _CleanInvalidXmlChars(value);
+                }
+                else
+                {
+                    throw new IllegalCharacterException($"'{value}' contains illegal characters for xml.");
+                }
+            }
+
             Profile safeProfile = profile;
             if (profile == Profile.Unknown)
             {
@@ -225,6 +254,18 @@ namespace s2industries.ZUGFeRD
 
         public void WriteValue(string value, Profile profile = Profile.Unknown)
         {
+            if (!_IsValidXmlString(value))
+            {
+                if (_AutomaticallyCleanInvalidXmlCharacters == true)
+                {
+                    value = _CleanInvalidXmlChars(value);
+                }
+                else
+                {
+                    throw new IllegalCharacterException($"'{value}' contains illegal characters for xml.");
+                }
+            }
+
             StackInfo infoForCurrentNode = this.XmlStack.First();
             if (!infoForCurrentNode.IsVisible)
             {
@@ -236,8 +277,45 @@ namespace s2industries.ZUGFeRD
         } // !WriteAttributeString()
 
 
+        public void WriteComment(string comment, Profile profile = Profile.Unknown)
+        {
+            if (!_IsValidXmlString(comment))
+            {
+                if (_AutomaticallyCleanInvalidXmlCharacters == true)
+                {
+                    comment = _CleanInvalidXmlChars(comment);
+                }
+                else
+                {
+                    throw new IllegalCharacterException($"'{comment}' contains illegal characters for xml.");
+                }
+            }
+
+            StackInfo infoForCurrentNode = this.XmlStack.FirstOrDefault();
+            if ((infoForCurrentNode != null) && !infoForCurrentNode.IsVisible)
+            {
+                return;
+            }
+
+            // write value
+            this.TextWriter?.WriteComment(comment);
+        } // !WriteComment()
+
+
         public void WriteRawString(string value, Profile profile = Profile.Unknown)
         {
+            if (!_IsValidXmlString(value))
+            {
+                if (_AutomaticallyCleanInvalidXmlCharacters == true)
+                {
+                    value = _CleanInvalidXmlChars(value);
+                }
+                else
+                {
+                    throw new IllegalCharacterException($"'{value}' contains illegal characters for xml.");
+                }
+            }
+
             StackInfo infoForCurrentNode = this.XmlStack.First();
             if (!infoForCurrentNode.IsVisible)
             {
@@ -326,5 +404,56 @@ namespace s2industries.ZUGFeRD
             this.Namespaces = namespaces;
         }
         #endregion // !Convenience functions
+
+
+        #region Cleanúp functions
+        /// <summary>
+        /// Make sure that the given string does not contain invalid xml characters.
+        /// The invalid characters are removed from the string
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private string _CleanInvalidXmlChars(string input)
+        {
+            var output = new StringBuilder(input.Length);
+            foreach (char c in input)
+            {
+                if (_IsValidXmlChar(c))
+                {
+                    output.Append(c);
+                }
+            }
+            return output.ToString();
+        } // !_CleanInvalidXmlChars()
+
+
+        private bool _IsValidXmlString(string input)
+        {
+            if (String.IsNullOrWhiteSpace(input))
+            {
+                return true; // empty strings are valid
+            }
+
+            foreach (char c in input)
+            {
+                if (!_IsValidXmlChar(c))
+                {
+                    return false;
+                }
+            }
+            return true;
+        } // !_IsValidXmlString()
+        
+
+        private bool _IsValidXmlChar(char c)
+        {
+            return
+                c == 0x9 || c == 0xA || c == 0xD ||
+                (c >= 0x20 && c <= 0xD7FF) ||
+                (c >= 0xE000 && c <= 0xFFFD) ||
+                (c >= 0x10000 && c <= 0x10FFFF);
+        } // !_IsValidXmlChar()
+
+        #endregion // !Cleanup function
     }
 }

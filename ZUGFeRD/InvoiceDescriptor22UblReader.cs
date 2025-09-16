@@ -56,7 +56,8 @@ namespace s2industries.ZUGFeRD
             XmlNamespaceManager nsmgr = new XmlNamespaceManager(doc.DocumentElement.OwnerDocument.NameTable);
 
             if ((firstPartOfDocument.IndexOf("<CreditNote", StringComparison.OrdinalIgnoreCase) > -1) ||
-                (firstPartOfDocument.IndexOf("<ubl:CreditNote", StringComparison.OrdinalIgnoreCase) > -1))
+                (firstPartOfDocument.IndexOf("<ubl:CreditNote", StringComparison.OrdinalIgnoreCase) > -1) ||
+                (firstPartOfDocument.IndexOf("<ns0:CreditNote", StringComparison.OrdinalIgnoreCase) > -1))
             {
                 isInvoice = false;
             }
@@ -93,6 +94,10 @@ namespace s2industries.ZUGFeRD
                 {
                     baseNode = doc.SelectSingleNode("/CreditNote", nsmgr);
                 }
+                if (baseNode == null)
+                {
+                    baseNode = doc.SelectSingleNode("/ns0:CreditNote", nsmgr);
+                }
             }
 
             InvoiceDescriptor retval = new InvoiceDescriptor
@@ -116,7 +121,7 @@ namespace s2industries.ZUGFeRD
                     subjectCodeAsString = contentParts[0];
                     content = contentParts[1];
                 }
-                SubjectCodes subjectCode = EnumExtensions.StringToEnum<SubjectCodes>(subjectCodeAsString);
+                SubjectCodes? subjectCode = EnumExtensions.StringToNullableEnum<SubjectCodes>(subjectCodeAsString);
                 retval.AddNote(content, subjectCode);
             }
 
@@ -192,6 +197,8 @@ namespace s2industries.ZUGFeRD
                 };
             }
 
+            retval.SellerTaxRepresentative = _nodeAsParty(doc.DocumentElement, "//cac:TaxRepresentativeParty/cac:Party", nsmgr);
+
             //Get all referenced and embedded documents (BG-24)
             // TODO //XmlNodeList referencedDocNodes = doc.SelectNodes(".//ram:ApplicableHeaderTradeAgreement/ram:AdditionalReferencedDocument", nsmgr);
             //foreach (XmlNode referenceNode in referencedDocNodes)
@@ -242,7 +249,7 @@ namespace s2industries.ZUGFeRD
                 {
                     retval.ShipTo = _nodeAsAddressParty(deliveryNode, ".//cac:Address", nsmgr) ?? new Party();
                     retval.ShipTo.GlobalID = new GlobalID();
-                    retval.ShipTo.ID = new GlobalID(EnumExtensions.StringToEnum<GlobalIDSchemeIdentifiers>(XmlUtils.NodeAsString(deliveryLocationNode, ".//cbc:ID/@schemeID", nsmgr)), XmlUtils.NodeAsString(deliveryLocationNode, ".//cbc:ID", nsmgr));
+                    retval.ShipTo.ID = new GlobalID(EnumExtensions.StringToNullableEnum<GlobalIDSchemeIdentifiers>(XmlUtils.NodeAsString(deliveryLocationNode, ".//cbc:ID/@schemeID", nsmgr)), XmlUtils.NodeAsString(deliveryLocationNode, ".//cbc:ID", nsmgr));
                     retval.ShipTo.Name = XmlUtils.NodeAsString(deliveryNode, ".//cac:DeliveryParty/cac:PartyName/cbc:Name", nsmgr);
                 }
                 retval.ActualDeliveryDate = XmlUtils.NodeAsDateTime(doc.DocumentElement, "//cac:Delivery/cbc:ActualDeliveryDate", nsmgr);
@@ -273,7 +280,7 @@ namespace s2industries.ZUGFeRD
             retval.Currency = EnumExtensions.StringToEnum<CurrencyCodes>(XmlUtils.NodeAsString(doc.DocumentElement, "//cbc:DocumentCurrencyCode", nsmgr));
 
             CurrencyCodes optionalTaxCurrency = EnumExtensions.StringToEnum<CurrencyCodes>(XmlUtils.NodeAsString(doc.DocumentElement, "//cbc:TaxCurrencyCode", nsmgr)); // BT-6
-            if (optionalTaxCurrency != CurrencyCodes.Unknown)
+            if (optionalTaxCurrency != default)
             {
                 retval.TaxCurrency = optionalTaxCurrency;
             }
@@ -281,7 +288,7 @@ namespace s2industries.ZUGFeRD
             // TODO: Multiple SpecifiedTradeSettlementPaymentMeans can exist for each account/institution (with different SEPA?)
             PaymentMeans tempPaymentMeans = new PaymentMeans()
             {
-                TypeCode = EnumExtensions.StringToEnum<PaymentMeansTypeCodes>(XmlUtils.NodeAsString(doc.DocumentElement, "//cac:PaymentMeans/cbc:PaymentMeansCode", nsmgr)),
+                TypeCode = EnumExtensions.StringToNullableEnum<PaymentMeansTypeCodes>(XmlUtils.NodeAsString(doc.DocumentElement, "//cac:PaymentMeans/cbc:PaymentMeansCode", nsmgr)),
                 Information = XmlUtils.NodeAsString(doc.DocumentElement, "//cac:PaymentMeans/cbc:PaymentMeansCode/@name", nsmgr),
                 SEPACreditorIdentifier = XmlUtils.NodeAsString(doc.DocumentElement, "//cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID[@schemeID='SEPA']", nsmgr),
                 SEPAMandateReference = XmlUtils.NodeAsString(doc.DocumentElement, "//cac:PaymentMeans/cac:PaymentMandate/cbc:ID", nsmgr)
@@ -316,7 +323,7 @@ namespace s2industries.ZUGFeRD
                 retval._AddDebitorFinancialAccount(_nodeAsBankAccount(node, ".", nsmgr));
             }
 
-            foreach (XmlNode node in doc.SelectNodes("//cac:TaxTotal/cac:TaxSubtotal", nsmgr))
+            foreach (XmlNode node in doc.SelectNodes("/*/cac:TaxTotal/cac:TaxSubtotal", nsmgr))
             {
                 retval.AddApplicableTradeTax(XmlUtils.NodeAsDecimal(node, "cbc:TaxableAmount", nsmgr, 0).Value,
                                              XmlUtils.NodeAsDecimal(node, "cac:TaxCategory/cbc:Percent", nsmgr, 0).Value,
@@ -334,15 +341,30 @@ namespace s2industries.ZUGFeRD
             // so we specify the node with the parent node
             foreach (XmlNode node in baseNode.SelectNodes("./cac:AllowanceCharge", nsmgr))
             {
-                retval.AddTradeAllowanceCharge(!XmlUtils.NodeAsBool(node, ".//cbc:ChargeIndicator", nsmgr), // wichtig: das not (!) beachten
-                                               XmlUtils.NodeAsDecimal(node, ".//cbc:BaseAmount", nsmgr, 0).Value,
-                                               retval.Currency,
-                                               XmlUtils.NodeAsDecimal(node, ".//cbc:Amount", nsmgr, 0).Value,
-                                               XmlUtils.NodeAsString(node, ".//cbc:AllowanceChargeReason", nsmgr),
-                                               EnumExtensions.StringToEnum<TaxTypes>(XmlUtils.NodeAsString(node, ".//cac:TaxCategory/cac:TaxScheme/cbc:ID", nsmgr)),
-                                               EnumExtensions.StringToEnum<TaxCategoryCodes>(XmlUtils.NodeAsString(node, ".//cac:TaxCategory/cbc:ID", nsmgr)),
-                                               XmlUtils.NodeAsDecimal(node, ".//cac:TaxCategory/cbc:Percent", nsmgr, 0).Value,
-                                               EnumExtensions.FromDescription<AllowanceReasonCodes>(XmlUtils.NodeAsString(node, "./cbc:AllowanceChargeReasonCode", nsmgr)));
+                bool chargeIndicator = XmlUtils.NodeAsBool(node, ".//cbc:ChargeIndicator", nsmgr);
+
+                if (chargeIndicator) // charge
+                {
+                    retval._AddTradeCharge(XmlUtils.NodeAsDecimal(node, ".//cbc:BaseAmount", nsmgr, 0).Value,
+                                           retval.Currency,
+                                           XmlUtils.NodeAsDecimal(node, ".//cbc:Amount", nsmgr, 0).Value,
+                                           XmlUtils.NodeAsString(node, ".//cbc:AllowanceChargeReason", nsmgr),
+                                           EnumExtensions.StringToNullableEnum<TaxTypes>(XmlUtils.NodeAsString(node, ".//cac:TaxCategory/cac:TaxScheme/cbc:ID", nsmgr)),
+                                           EnumExtensions.StringToNullableEnum<TaxCategoryCodes>(XmlUtils.NodeAsString(node, ".//cac:TaxCategory/cbc:ID", nsmgr)),
+                                           XmlUtils.NodeAsDecimal(node, ".//cac:TaxCategory/cbc:Percent", nsmgr, 0).Value,
+                                           EnumExtensions.StringToEnum<ChargeReasonCodes>(XmlUtils.NodeAsString(node, "./cbc:AllowanceChargeReasonCode", nsmgr)));
+                }
+                else // allowance
+                {
+                    retval._AddTradeAllowance(XmlUtils.NodeAsDecimal(node, ".//cbc:BaseAmount", nsmgr, 0).Value,
+                                              retval.Currency,
+                                              XmlUtils.NodeAsDecimal(node, ".//cbc:Amount", nsmgr, 0).Value,
+                                              XmlUtils.NodeAsString(node, ".//cbc:AllowanceChargeReason", nsmgr),
+                                              EnumExtensions.StringToNullableEnum<TaxTypes>(XmlUtils.NodeAsString(node, ".//cac:TaxCategory/cac:TaxScheme/cbc:ID", nsmgr)),
+                                              EnumExtensions.StringToNullableEnum<TaxCategoryCodes>(XmlUtils.NodeAsString(node, ".//cac:TaxCategory/cbc:ID", nsmgr)),
+                                              XmlUtils.NodeAsDecimal(node, ".//cac:TaxCategory/cbc:Percent", nsmgr, 0).Value,
+                                              EnumExtensions.StringToEnum<AllowanceReasonCodes>(XmlUtils.NodeAsString(node, "./cbc:AllowanceChargeReasonCode", nsmgr)));
+                }
             }
 
             // TODO: Find value //foreach (XmlNode node in doc.SelectNodes("//ram:SpecifiedLogisticsServiceCharge", nsmgr))
@@ -501,19 +523,19 @@ namespace s2industries.ZUGFeRD
             decimal? billedQuantity = isInvoice
                 ? XmlUtils.NodeAsDecimal(tradeLineItem, ".//cbc:InvoicedQuantity", nsmgr)
                 : XmlUtils.NodeAsDecimal(tradeLineItem, ".//cbc:CreditedQuantity", nsmgr);
-            QuantityCodes unitCode = isInvoice
-                ? default(QuantityCodes).FromString(XmlUtils.NodeAsString(tradeLineItem, ".//cbc:InvoicedQuantity/@unitCode", nsmgr))
-                : default(QuantityCodes).FromString(XmlUtils.NodeAsString(tradeLineItem, ".//cbc:CreditedQuantity/@unitCode", nsmgr));
+            QuantityCodes? unitCode = isInvoice
+                ? EnumExtensions.StringToNullableEnum<QuantityCodes>(XmlUtils.NodeAsString(tradeLineItem, ".//cbc:InvoicedQuantity/@unitCode", nsmgr))
+                : EnumExtensions.StringToNullableEnum<QuantityCodes>(XmlUtils.NodeAsString(tradeLineItem, ".//cbc:CreditedQuantity/@unitCode", nsmgr));
 
             TradeLineItem item = new TradeLineItem(lineId)
             {
-                GlobalID = new GlobalID(EnumExtensions.StringToEnum<GlobalIDSchemeIdentifiers>(XmlUtils.NodeAsString(tradeLineItem, "./cac:Item/cac:StandardItemIdentification/cbc:ID/@schemeID", nsmgr)),
+                GlobalID = new GlobalID(EnumExtensions.StringToNullableEnum<GlobalIDSchemeIdentifiers>(XmlUtils.NodeAsString(tradeLineItem, "./cac:Item/cac:StandardItemIdentification/cbc:ID/@schemeID", nsmgr)),
                                         XmlUtils.NodeAsString(tradeLineItem, "./cac:Item/cac:StandardItemIdentification/cbc:ID", nsmgr)),
                 SellerAssignedID = XmlUtils.NodeAsString(tradeLineItem, "./cac:Item/cac:SellersItemIdentification/cbc:ID", nsmgr),
                 BuyerAssignedID = XmlUtils.NodeAsString(tradeLineItem, "./cac:Item/cac:BuyersItemIdentification/cbc:ID", nsmgr),
                 Name = XmlUtils.NodeAsString(tradeLineItem, "./cac:Item/cbc:Name", nsmgr),
                 Description = XmlUtils.NodeAsString(tradeLineItem, ".//cac:Item/cbc:Description", nsmgr),
-                UnitQuantity = XmlUtils.NodeAsDecimal(tradeLineItem, ".//cac:Price/cbc:BaseQuantity", nsmgr, 1),
+                NetQuantity = XmlUtils.NodeAsDecimal(tradeLineItem, ".//cac:Price/cbc:BaseQuantity", nsmgr, 1),
                 BilledQuantity = billedQuantity ?? 0,
                 LineTotalAmount = XmlUtils.NodeAsDecimal(tradeLineItem, ".//cbc:LineExtensionAmount", nsmgr, 0),
                 TaxCategoryCode = EnumExtensions.StringToEnum<TaxCategoryCodes>(XmlUtils.NodeAsString(tradeLineItem, ".//cac:Item/cac:ClassifiedTaxCategory/cbc:ID", nsmgr)),
@@ -536,8 +558,8 @@ namespace s2industries.ZUGFeRD
             {
                 foreach (XmlNode commodityClassification in tradeLineItem.SelectNodes(".//cac:Item/cac:CommodityClassification/cbc:ItemClassificationCode", nsmgr))
                 {
-                    DesignatedProductClassificationClassCodes listID = EnumExtensions.StringToEnum<DesignatedProductClassificationClassCodes>(XmlUtils.NodeAsString(commodityClassification, "./@listID", nsmgr));
-                    item.AddDesignatedProductClassification(
+                    DesignatedProductClassificationClassCodes? listID = EnumExtensions.StringToNullableEnum<DesignatedProductClassificationClassCodes>(XmlUtils.NodeAsString(commodityClassification, "./@listID", nsmgr));
+                    item._AddDesignatedProductClassification(
                         listID,
                         XmlUtils.NodeAsString(commodityClassification, "./@listVersionID", nsmgr),
                         commodityClassification.InnerText,
@@ -588,7 +610,7 @@ namespace s2industries.ZUGFeRD
                     document.AttachmentBinaryObject = Convert.FromBase64String(binaryObjectNode.InnerText);
                 }
 
-                item._AdditionalReferencedDocuments.Add(document);
+                item.AdditionalReferencedDocuments.Add(document);
             }
 
             //Read IncludedReferencedProducts
@@ -640,9 +662,7 @@ namespace s2industries.ZUGFeRD
             foreach (XmlNode noteNode in noteNodes)
             {
                 item.AssociatedDocument.Notes.Add(new Note(
-                            content: noteNode.InnerText,
-                            subjectCode: SubjectCodes.Unknown,
-                            contentCode: ContentCodes.Unknown
+                            content: noteNode.InnerText
                 ));
             }
 
@@ -657,18 +677,28 @@ namespace s2industries.ZUGFeRD
                 string reason = XmlUtils.NodeAsString(appliedTradeAllowanceChargeNode, "./cbc:AllowanceChargeReason", nsmgr);
                 string reasonCode = XmlUtils.NodeAsString(appliedTradeAllowanceChargeNode, "./cbc:AllowanceChargeReasonCode", nsmgr);
 
-                item.AddTradeAllowanceCharge(!chargeIndicator, // wichtig: das not (!) beachten
-                                                EnumExtensions.StringToEnum<CurrencyCodes>(basisAmountCurrency),
-                                                basisAmount,
-                                                actualAmount,
-                                                reason,
-                                                EnumExtensions.FromDescription<AllowanceReasonCodes>(reasonCode));
+                if (chargeIndicator) // charge
+                {
+                    item.AddTradeCharge(EnumExtensions.StringToEnum<CurrencyCodes>(basisAmountCurrency),
+                                        basisAmount,
+                                        actualAmount,
+                                        reason,
+                                        EnumExtensions.StringToEnum<ChargeReasonCodes>(reasonCode));
+                }
+                else // allowance
+                {
+                    item.AddTradeAllowance(EnumExtensions.StringToEnum<CurrencyCodes>(basisAmountCurrency),
+                                           basisAmount,
+                                           actualAmount,
+                                           reason,
+                                           EnumExtensions.StringToEnum<AllowanceReasonCodes>(reasonCode));
+                }
             }
 
-            if (item.UnitCode == QuantityCodes.Unknown)
+            if (!item.UnitCode.HasValue)
             {
                 // UnitCode alternativ aus BilledQuantity extrahieren
-                item.UnitCode = default(QuantityCodes).FromString(XmlUtils.NodeAsString(tradeLineItem, ".//cbc:InvoicedQuantity/@unitCode", nsmgr));
+                item.UnitCode = EnumExtensions.StringToNullableEnum<QuantityCodes>(XmlUtils.NodeAsString(tradeLineItem, ".//cbc:InvoicedQuantity/@unitCode", nsmgr));
             }
 
             // TODO: Find value //if (tradeLineItem.SelectSingleNode(".//ram:SpecifiedLineTradeDelivery/ram:DeliveryNoteReferencedDocument/ram:IssuerAssignedID", nsmgr) != null)
@@ -733,7 +763,7 @@ namespace s2industries.ZUGFeRD
                 return null;
             var retval = new LegalOrganization()
             {
-                ID = new GlobalID(EnumExtensions.StringToEnum<GlobalIDSchemeIdentifiers>(XmlUtils.NodeAsString(node, "cbc:CompanyID/@schemeID", nsmgr)),
+                ID = new GlobalID(EnumExtensions.StringToNullableEnum<GlobalIDSchemeIdentifiers>(XmlUtils.NodeAsString(node, "cbc:CompanyID/@schemeID", nsmgr)),
                                         XmlUtils.NodeAsString(node, "cbc:CompanyID", nsmgr)),
                 TradingBusinessName = XmlUtils.NodeAsString(node, "cbc:RegistrationName", nsmgr),
             };
@@ -753,7 +783,7 @@ namespace s2industries.ZUGFeRD
             }
 
             Party retval = _nodeAsAddressParty(node, $"{xpath}/cac:PostalAddress", nsmgr) ?? new Party();
-            var id = new GlobalID(EnumExtensions.StringToEnum<GlobalIDSchemeIdentifiers>(XmlUtils.NodeAsString(node, "cac:PartyIdentification/cbc:ID/@schemeID", nsmgr)), XmlUtils.NodeAsString(node, "cac:PartyIdentification/cbc:ID", nsmgr));
+            var id = new GlobalID(EnumExtensions.StringToNullableEnum<GlobalIDSchemeIdentifiers>(XmlUtils.NodeAsString(node, "cac:PartyIdentification/cbc:ID/@schemeID", nsmgr)), XmlUtils.NodeAsString(node, "cac:PartyIdentification/cbc:ID", nsmgr));
             if (id.SchemeID == GlobalIDSchemeIdentifiers.GLN)
             {
                 retval.ID = new GlobalID();
@@ -770,6 +800,11 @@ namespace s2industries.ZUGFeRD
             if (string.IsNullOrWhiteSpace(retval.Name))
             {
                 retval.Name = XmlUtils.NodeAsString(node, "cac:PartyLegalEntity/cbc:RegistrationName", nsmgr);
+            }
+
+            if (string.IsNullOrWhiteSpace(retval.Description))
+            {
+                retval.Description = XmlUtils.NodeAsString(node, "cac:PartyLegalEntity/cbc:CompanyLegalForm", nsmgr);
             }
 
             if (string.IsNullOrWhiteSpace(retval.ContactName))
@@ -824,7 +859,7 @@ namespace s2industries.ZUGFeRD
                 City = XmlUtils.NodeAsString(node, "cbc:CityName", nsmgr),
                 Postcode = XmlUtils.NodeAsString(node, "cbc:PostalZone", nsmgr),
                 CountrySubdivisionName = XmlUtils.NodeAsString(node, "cbc:CountrySubentity", nsmgr),
-                Country = EnumExtensions.StringToEnum<CountryCodes>(XmlUtils.NodeAsString(node, "cac:Country/cbc:IdentificationCode", nsmgr)),
+                Country = EnumExtensions.StringToNullableEnum<CountryCodes>(XmlUtils.NodeAsString(node, "cac:Country/cbc:IdentificationCode", nsmgr)),
             };
             string addressLine2 = XmlUtils.NodeAsString(node, "cac:AddressLine/cbc:Line", nsmgr);
             if (!string.IsNullOrWhiteSpace(addressLine2))

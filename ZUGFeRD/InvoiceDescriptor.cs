@@ -66,7 +66,6 @@ namespace s2industries.ZUGFeRD
         ///
         /// A new reference document is added by AddAdditionalReferenceDocument()
         /// </summary>
-        [Obsolete("This property will not be available any more with version 18.0. Please use GetAdditionalReferencedDocuments() instead")]
         public List<AdditionalReferencedDocument> AdditionalReferencedDocuments { get; internal set; } = new List<AdditionalReferencedDocument>();
 
         /// <summary>
@@ -147,8 +146,7 @@ namespace s2industries.ZUGFeRD
         /// List of tax registration numbers for the buyer
         ///
         /// BT-48
-        /// </summary>
-        [Obsolete("This property will not be available any more with version 18.0. Please use GetBuyerTaxRegistration() instead")]
+        /// </summary>        
         public List<TaxRegistration> BuyerTaxRegistration { get; internal set; } = new List<TaxRegistration>();
 
         /// <summary>
@@ -173,8 +171,7 @@ namespace s2industries.ZUGFeRD
         /// List of tax registration numbers for the seller.
         ///
         /// BT-31
-        /// </summary>
-        [Obsolete("This property will not be available any more with version 18.0. Please use GetSellerTaxRegistration() instead")]
+        /// </summary>        
         public List<TaxRegistration> SellerTaxRegistration { get; internal set; } = new List<TaxRegistration>();
 
         /// <summary>
@@ -189,6 +186,19 @@ namespace s2industries.ZUGFeRD
         /// This field seems not to be used in common scenarios.
         /// </summary>
         public string SellerReferenceNo { get; set; } = String.Empty;
+
+        /// <summary>
+        /// A group of business terms providing information about the Seller's tax representative.
+        /// BG-11
+        /// </summary>
+        public Party SellerTaxRepresentative { get; set; }
+
+        /// <summary>
+        /// List of tax registration numbers for the seller.
+        ///
+        /// BT-63
+        /// </summary>        
+        public List<TaxRegistration> SellerTaxRepresentativeTaxRegistration { get; internal set; } = new List<TaxRegistration>();
 
         /// <summary>
         /// This party is optional and only relevant for Extended profile
@@ -254,8 +264,7 @@ namespace s2industries.ZUGFeRD
         /// Free text on header level
         ///
         /// BG-1
-        /// </summary>
-        [Obsolete("This property will not be available any more with version 18.0. Please use GetNotes() instead")]
+        /// </summary>        
         public List<Note> Notes { get; internal set; } = new List<Note>();
 
         /// <summary>
@@ -307,14 +316,13 @@ namespace s2industries.ZUGFeRD
         /// An aggregation of business terms containing information about individual invoice positions
         ///
         /// BG-31
-        /// </summary>
-        [Obsolete("This property will not be available any more with version 18.0. Please use GetTradeLineItems() instead")]
+        /// </summary>        
         public List<TradeLineItem> TradeLineItems { get; internal set; } = new List<TradeLineItem>();
 
         /// <summary>
-        /// Sum of all invoice line net amounts in the invoice
+        /// Sum of all invoice line net amounts (BT-131) in the invoice
         ///
-        /// BT-131
+        /// BT-106
         /// </summary>
         public decimal? LineTotalAmount { get; set; } = null;
 
@@ -396,31 +404,28 @@ namespace s2industries.ZUGFeRD
         /// A group of business terms providing information about VAT breakdown by different categories, rates and exemption reasons
         ///
         /// BG-23
-        /// </summary>
-        [Obsolete("This property will be removed in version 18.0. Please use GetApplicableTradeTaxes() instead")]
-        public  List<Tax> Taxes { get; internal set; } = new List<Tax>();
+        /// </summary>        
+        public List<Tax> Taxes { get; internal set; } = new List<Tax>();
 
 
         /// <summary>
         /// Transport and packaging costs
-        /// </summary>
-        [Obsolete("This property will be removed in version 18.0. Please use GetLogisticsServiceCharges() instead")]
+        /// </summary>        
         public List<ServiceCharge> ServiceCharges { get; internal set; } = new List<ServiceCharge>();
 
         /// <summary>
-        /// Detailed information on discounts and charges.
-        /// This field is marked as private now, please use GetTradeAllowanceCharges() to retrieve all trade allowance charges
+        /// Detailed information on discounts and charges.        
         ///
-        /// BG-27
+        /// BG-21
         /// </summary>
-        private List<TradeAllowanceCharge> _TradeAllowanceCharges { get; set; } = new List<TradeAllowanceCharge>();
+        public List<AbstractTradeAllowanceCharge> TradeAllowanceCharges { get; internal set; } = new List<AbstractTradeAllowanceCharge>();
 
         /// <summary>
         /// Detailed information about payment terms
         ///
         /// BT-20
         /// </summary>
-        private List<PaymentTerms> _PaymentTerms { get; set; } = new List<PaymentTerms>();
+        public List<PaymentTerms> PaymentTerms { get; internal set; } = new List<PaymentTerms>();
 
         /// <summary>
         /// A group of business terms providing information about a preceding invoices.
@@ -432,14 +437,13 @@ namespace s2industries.ZUGFeRD
         ///
         /// BG-3
         /// </summary>
-        private List<InvoiceReferencedDocument> _InvoiceReferencedDocuments { get; set; } = new List<InvoiceReferencedDocument>();
+        public List<InvoiceReferencedDocument> _InvoiceReferencedDocuments { get; internal set; } = new List<InvoiceReferencedDocument>();
 
         /// <summary>
         /// Detailed information about the accounting reference
         ///
         /// BT-19
-        /// </summary>
-        [Obsolete("This property will be removed in version 18.0. Please use GetReceivableSpecifiedTradeAccountingAccounts() instead")]
+        /// </summary>        
         public List<ReceivableSpecifiedTradeAccountingAccount> _ReceivableSpecifiedTradeAccountingAccounts { get; internal set; } = new List<ReceivableSpecifiedTradeAccountingAccount>();
 
         /// <summary>
@@ -448,16 +452,14 @@ namespace s2industries.ZUGFeRD
         /// A group of business terms to specify credit transfer payments
         ///
         /// BG-17
-        /// </summary>
-        [Obsolete("This property will be removed in version 18.0. Please use GetCreditorFinancialAccounts() instead")]
+        /// </summary>        
         public List<BankAccount> CreditorBankAccounts { get; internal set; } = new List<BankAccount>();
 
         /// <summary>
         /// Buyer bank information
         ///
         /// BG-16
-        /// </summary>
-        [Obsolete("This property will be removed in version 18.0. Please use GetDebitorFinancialAccounts() instead")]
+        /// </summary>        
         public List<BankAccount> DebitorBankAccounts { get; internal set; } = new List<BankAccount>();
 
         /// <summary>
@@ -498,6 +500,12 @@ namespace s2industries.ZUGFeRD
         /// The property "IssueDateTime" is optional an only used in profile "Extended"
         /// </summary>
         public SellerOrderReferencedDocument SellerOrderReferencedDocument { get; set; } = new SellerOrderReferencedDocument();
+
+        /// <summary>
+        /// The code specifying the mode, such as air, sea, rail, road or inland waterway, for this logistics transport movement.
+        /// BG-X-24 --> BT-X-152
+        /// </summary>
+        public TransportModeCodes? TransportMode { get; set; }
 
         /// <summary>
         /// Gets the ZUGFeRD version of a ZUGFeRD invoice that is passed via filename
@@ -677,14 +685,14 @@ namespace s2industries.ZUGFeRD
 
 
         /// <summary>
-        /// Adds a note to the invoice with optional subject and content codes
+        /// Adds a note to the invoice with optional subject and content codes        
         ///
         /// BG-1
         /// </summary>
         /// <param name="note">The note text to add</param>
         /// <param name="subjectCode">Optional subject code categorizing the note</param>
         /// <param name="contentCode">Optional content code categorizing the note</param>
-        public void AddNote(string note, SubjectCodes subjectCode = SubjectCodes.Unknown, ContentCodes contentCode = ContentCodes.Unknown)
+        public void AddNote(string note, SubjectCodes? subjectCode = null, ContentCodes? contentCode = null)
         {
             /*
              * @todo prüfen:
@@ -712,12 +720,12 @@ namespace s2industries.ZUGFeRD
         /// <param name="legalOrganization">Optional legal organization details</param>
         /// <param name="countrySubdivisonName">Optional country subdivision name</param>
         /// <param name="addressLine3">Optional additional address line</param>
-        public void SetBuyer(string name, string postcode, string city, string street, CountryCodes country, string id = null,
+        public void SetBuyer(string name, string postcode, string city, string street, CountryCodes? country = null, string id = null,
                              GlobalID globalID = null, string receiver = "", LegalOrganization legalOrganization = null, string countrySubdivisonName = null, string addressLine3 = null)
         {
             this.Buyer = new Party()
             {
-                ID = new GlobalID(GlobalIDSchemeIdentifiers.Unknown, id),
+                ID = new GlobalID(null, id),
                 Name = name,
                 Postcode = postcode,
                 ContactName = receiver,
@@ -748,12 +756,12 @@ namespace s2industries.ZUGFeRD
         /// <param name="description">Optional seller description</param>
         /// <param name="countrySubdivisonName">Optional country subdivision name</param>
         /// <param name="addressLine3">Optional additional address line</param>
-        public void SetSeller(string name, string postcode, string city, string street, CountryCodes country, string id = null,
+        public void SetSeller(string name, string postcode, string city, string street, CountryCodes? country = null, string id = null,
                               GlobalID globalID = null, LegalOrganization legalOrganization = null, string description = null, string countrySubdivisonName = null, string addressLine3 = null)
         {
             this.Seller = new Party()
             {
-                ID = new GlobalID(GlobalIDSchemeIdentifiers.Unknown, id),
+                ID = new GlobalID(null, id),
                 Name = name,
                 Postcode = postcode,
                 City = city,
@@ -865,12 +873,28 @@ namespace s2industries.ZUGFeRD
         } // !AddSellerTaxRegistration()
 
         /// <summary>
-        /// Adds a tax registration number for the ship to trade party.
+        /// Adds a tax registration number for the seller's tax representative.
         ///
-        /// BT-X-66-00
+        /// BT-11
         /// </summary>
         /// <param name="no">The tax registration number.</param>
         /// <param name="schemeID">The tax registration scheme identifier.</param>
+        public void AddSellerTaxRepresentativeTaxRegistration(string no, TaxRegistrationSchemeID schemeID)
+        {
+            this.SellerTaxRepresentativeTaxRegistration.Add(new TaxRegistration()
+            {
+                No = no,
+                SchemeID = schemeID
+            });
+        } // !AddSellerTaxRepresentativeTaxRegistration()
+
+        /// <summary>
+        /// Adds a tax registration number for the ship to trade party.
+        ///
+        /// BT-X-66-00
+        /// <param name="no">The tax registration number.</param>
+        /// <param name="schemeID">The tax registration scheme identifier.</param>
+        /// </summary>
         public void AddShipToTaxRegistration(string no, TaxRegistrationSchemeID schemeID)
         {
             this._ShipToTaxRegistration.Add(new TaxRegistration()
@@ -1013,19 +1037,7 @@ namespace s2industries.ZUGFeRD
         } // !SetContractReferencedDocument()
 
 
-        /// <summary>
-        /// The logistics service charge (ram:SpecifiedLogisticsServiceCharge) is part of the ZUGFeRD specification.
-        /// Please note that it is not part of the XRechnung specification, thus, everything passed to this function will not
-        /// be written when writing XRechnung format.
-        ///
-        /// You might use AddTradeAllowanceCharge() instead.
-        /// </summary>
-        /// <param name="amount">Charge amount</param>
-        /// <param name="description">Description of the charge</param>
-        /// <param name="taxTypeCode">Type of tax</param>
-        /// <param name="taxCategoryCode">Tax category</param>
-        /// <param name="taxPercent">Tax percentage</param>
-        public void AddLogisticsServiceCharge(decimal amount, string description, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent)
+        internal void _AddLogisticsServiceCharge(decimal amount, string description, TaxTypes? taxTypeCode, TaxCategoryCodes? taxCategoryCode, decimal taxPercent)
         {
             this.ServiceCharges.Add(new ServiceCharge()
             {
@@ -1042,12 +1054,28 @@ namespace s2industries.ZUGFeRD
 
 
         /// <summary>
-        /// Adds an allowance or charge on document level.
+        /// The logistics service charge (ram:SpecifiedLogisticsServiceCharge) is part of the ZUGFeRD specification.
+        /// Please note that it is not part of the XRechnung specification, thus, everything passed to this function will not
+        /// be written when using XRechnung format.
         ///
-        /// BG-27
-        /// Allowance represents a discount whereas charge represents a surcharge.
+        /// You might use AddTradeAllowanceCharge() instead.
         /// </summary>
-        /// <param name="isDiscount">True if this is a discount, false if it's a charge</param>
+        /// <param name="amount">Charge amount</param>
+        /// <param name="description">Description of the charge</param>
+        /// <param name="taxTypeCode">Type of tax</param>
+        /// <param name="taxCategoryCode">Tax category</param>
+        /// <param name="taxPercent">Tax percentage</param>
+        public void AddLogisticsServiceCharge(decimal amount, string description, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent)
+        {
+            _AddLogisticsServiceCharge(amount, description, taxTypeCode, taxCategoryCode, taxPercent);
+        } // !AddLogisticsServiceCharge()        
+
+
+        /// <summary>
+        /// Adds an allowance (discount) on document level.
+        ///
+        /// BG-21
+        /// </summary>
         /// <param name="basisAmount">Base amount for calculation</param>
         /// <param name="currency">Currency code</param>
         /// <param name="actualAmount">Actual amount of allowance/charge</param>
@@ -1056,13 +1084,20 @@ namespace s2industries.ZUGFeRD
         /// <param name="taxCategoryCode">Tax category</param>
         /// <param name="taxPercent">Tax percentage</param>
         /// <param name="reasonCode">Optional reason code</param>
-        public void AddTradeAllowanceCharge(bool isDiscount, decimal? basisAmount, CurrencyCodes currency, decimal actualAmount,
-                                            string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent,
-                                            AllowanceReasonCodes reasonCode = AllowanceReasonCodes.Unknown)
+        public void AddTradeAllowance(decimal? basisAmount, CurrencyCodes currency, decimal actualAmount,
+                                      string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent,
+                                      AllowanceReasonCodes? reasonCode = null)
         {
-            this._TradeAllowanceCharges.Add(new TradeAllowanceCharge()
+            _AddTradeAllowance(basisAmount, currency, actualAmount, reason, taxTypeCode, taxCategoryCode, taxPercent, reasonCode);
+        } // !AddTradeAllowance()
+
+
+        internal void _AddTradeAllowance(decimal? basisAmount, CurrencyCodes currency, decimal actualAmount,
+                                         string reason, TaxTypes? taxTypeCode, TaxCategoryCodes? taxCategoryCode, decimal taxPercent,
+                                         AllowanceReasonCodes? reasonCode = null)
+        {
+            this.TradeAllowanceCharges.Add(new TradeAllowance()
             {
-                ChargeIndicator = !isDiscount,
                 Reason = reason,
                 ReasonCode = reasonCode,
                 BasisAmount = basisAmount,
@@ -1077,30 +1112,39 @@ namespace s2industries.ZUGFeRD
                     Percent = taxPercent
                 }
             });
-        } // !AddTradeAllowanceCharge()
+        } // !AddTradeAllowance()
 
 
         /// <summary>
-        /// Adds an allowance or charge on document level.
+        /// Adds an charge on document level.
         ///
-        /// BG-27
-        /// Allowance represents a discount whereas charge represents a surcharge.
+        /// BG-21       
         /// </summary>
-        /// <param name="isDiscount">Marks if the allowance charge is a discount. Please note that in contrary to this function, the xml file indicated a surcharge, not a discount (value will be inverted)</param>
-        /// <param name="basisAmount">Base amount (basis of allowance)</param>
-        /// <param name="currency">Curency of the allowance</param>
-        /// <param name="actualAmount">Actual allowance charge amount</param>
-        /// <param name="chargePercentage">Actual allowance charge percentage</param>
-        /// <param name="reason">Reason for the allowance</param>
-        /// <param name="taxTypeCode">VAT type code for document level allowance/ charge</param>
-        /// <param name="taxCategoryCode">VAT type code for document level allowance/ charge</param>
-        /// <param name="taxPercent">VAT rate for the allowance</param>
-        /// <param name="reasonCode">Reason code for the allowance</param>
-        public void AddTradeAllowanceCharge(bool isDiscount, decimal? basisAmount, CurrencyCodes currency, decimal actualAmount, decimal? chargePercentage, string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent, AllowanceReasonCodes reasonCode = AllowanceReasonCodes.Unknown)
+        /// <param name="basisAmount">Base amount for calculation</param>
+        /// <param name="currency">Currency code</param>
+        /// <param name="actualAmount">Actual amount of charge</param>
+        /// <param name="chargePercentage">Actual percentage of charge</param>
+        /// <param name="reason">Reason for charge</param>
+        /// <param name="taxTypeCode">Type of tax</param>
+        /// <param name="taxCategoryCode">Tax category</param>
+        /// <param name="taxPercent">Tax percentage</param>
+        /// <param name="reasonCode">Optional reason code</param>
+        public void AddTradeCharge(decimal? basisAmount, CurrencyCodes currency, decimal actualAmount,
+                                   decimal? chargePercentage,
+                                   string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent,
+                                   ChargeReasonCodes? reasonCode = null)
         {
-            this._TradeAllowanceCharges.Add(new TradeAllowanceCharge()
+            _AddTradeCharge(basisAmount, currency, actualAmount, chargePercentage, reason, taxTypeCode, taxCategoryCode, taxPercent, reasonCode);
+        } // !AddTradeCharge()
+
+
+        internal void _AddTradeCharge(decimal? basisAmount, CurrencyCodes currency, decimal actualAmount,
+                                      decimal? chargePercentage,
+                                      string reason, TaxTypes? taxTypeCode, TaxCategoryCodes? taxCategoryCode, decimal taxPercent,
+                                      ChargeReasonCodes? reasonCode = null)
+        {
+            this.TradeAllowanceCharges.Add(new TradeCharge()
             {
-                ChargeIndicator = !isDiscount,
                 Reason = reason,
                 ReasonCode = reasonCode,
                 BasisAmount = basisAmount,
@@ -1115,19 +1159,136 @@ namespace s2industries.ZUGFeRD
                     Percent = taxPercent
                 }
             });
-        } // !AddTradeAllowanceCharge()
+        } // !AddTradeCharge()
+
+
+        /// <summary>
+        /// Adds an charge on document level.
+        ///
+        /// BG-21
+        /// </summary>
+        /// <param name="basisAmount">Base amount for calculation</param>
+        /// <param name="currency">Currency code</param>
+        /// <param name="actualAmount">Actual amount of charge</param>
+        /// <param name="reason">Reason for charge</param>
+        /// <param name="taxTypeCode">Type of tax</param>
+        /// <param name="taxCategoryCode">Tax category</param>
+        /// <param name="taxPercent">Tax percentage</param>
+        /// <param name="reasonCode">Optional reason code</param>
+        public void AddTradeCharge(decimal? basisAmount, CurrencyCodes currency, decimal actualAmount,
+                                   string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent,
+                                   ChargeReasonCodes? reasonCode = null)
+        {
+            _AddTradeCharge(basisAmount, currency, actualAmount, null, reason, taxTypeCode, taxCategoryCode, taxPercent, reasonCode);
+        } // !AddTradeCharge()
+
+
+        internal void _AddTradeCharge(decimal? basisAmount, CurrencyCodes currency, decimal actualAmount,
+                                      string reason, TaxTypes? taxTypeCode, TaxCategoryCodes? taxCategoryCode, decimal taxPercent,
+                                      ChargeReasonCodes? reasonCode = null)
+        {
+            this.TradeAllowanceCharges.Add(new TradeCharge()
+            {
+                Reason = reason,
+                ReasonCode = reasonCode,
+                BasisAmount = basisAmount,
+                ActualAmount = actualAmount,
+                Currency = currency,
+                Amount = actualAmount,
+                ChargePercentage = null,
+                Tax = new Tax()
+                {
+                    CategoryCode = taxCategoryCode,
+                    TypeCode = taxTypeCode,
+                    Percent = taxPercent
+                }
+            });
+        } // !AddTradeCharge()        
+
+
+        /// <summary>
+        /// Adds an allowance (discount) on document level.
+        ///
+        /// BG-21
+        /// </summary>        
+        /// <param name="basisAmount">Base amount (basis of allowance)</param>
+        /// <param name="currency">Curency of the allowance</param>
+        /// <param name="actualAmount">Actual allowance amount</param>
+        /// <param name="chargePercentage">Actual allowance percentage</param>
+        /// <param name="reason">Reason for the allowance</param>
+        /// <param name="taxTypeCode">VAT type code for document level allowance</param>
+        /// <param name="taxCategoryCode">VAT type code for document level allowance</param>
+        /// <param name="taxPercent">VAT rate for the allowance</param>
+        /// <param name="reasonCode">Reason code for the allowance</param>
+        public void AddTradeAllowance(decimal? basisAmount, CurrencyCodes currency, decimal actualAmount, decimal? chargePercentage, string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent, AllowanceReasonCodes? reasonCode = null)
+        {
+            _AddTradeAllowance(basisAmount, currency, actualAmount, chargePercentage, reason, taxTypeCode, taxCategoryCode, taxPercent, reasonCode);
+        } // !AddTradeAllowance()
+
+
+        internal void _AddTradeAllowance(decimal? basisAmount, CurrencyCodes currency, decimal actualAmount, decimal? chargePercentage, string reason, TaxTypes? taxTypeCode, TaxCategoryCodes? taxCategoryCode, decimal taxPercent, AllowanceReasonCodes? reasonCode = null)
+        {
+            this.TradeAllowanceCharges.Add(new TradeAllowance()
+            {
+                Reason = reason,
+                ReasonCode = reasonCode,
+                BasisAmount = basisAmount,
+                ActualAmount = actualAmount,
+                Currency = currency,
+                Amount = actualAmount,
+                ChargePercentage = chargePercentage,
+                Tax = new Tax()
+                {
+                    CategoryCode = taxCategoryCode,
+                    TypeCode = taxTypeCode,
+                    Percent = taxPercent
+                }
+            });
+        } // !AddTradeAllowance()
+
+
+        /// <summary>
+        /// Adds a charge on document level.
+        ///
+        /// BG-21
+        /// Allowance represents a discount whereas charge represents a surcharge.
+        /// </summary>        
+        /// <param name="basisAmount">Base amount (basis of charge)</param>
+        /// <param name="currency">Curency of the charge</param>
+        /// <param name="actualAmount">Actual charge amount</param>
+        /// <param name="chargePercentage">Actual charge percentage</param>
+        /// <param name="reason">Reason for the charge</param>
+        /// <param name="taxTypeCode">VAT type code for document level charge</param>
+        /// <param name="taxCategoryCode">VAT type code for document level charge</param>
+        /// <param name="taxPercent">VAT rate for the charge</param>
+        /// <param name="reasonCode">Reason code for the chargee/param>
+        [Obsolete("This function has a typo in the function name. Please use `AddTradeCharge` instead.", true)]
+        public void AddTradeeCharge(decimal? basisAmount, CurrencyCodes currency, decimal actualAmount, decimal? chargePercentage, string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent, ChargeReasonCodes? reasonCode = null)
+        {
+            _AddTradeCharge(basisAmount, currency, actualAmount, chargePercentage, reason, taxTypeCode, taxCategoryCode, taxPercent, reasonCode);
+        } // !AddTradeCharge()
+
+
+        /// <summary>
+        /// Returns all existing trade allowances
+        ///
+        /// BG-21
+        /// </summary>
+        public IList<TradeAllowance> GetTradeAllowances()
+        {
+            return this.TradeAllowanceCharges.Where(t => t is TradeAllowance charge && charge.ChargeIndicator == false).Select(t => t as TradeAllowance).ToList();
+        } // !GetTradeAllowances()
 
 
         /// <summary>
         /// Returns all existing trade allowance charges
         ///
-        /// BG-27
+        /// BG-21
         /// </summary>
-        /// <returns></returns>
-        public IList<TradeAllowanceCharge> GetTradeAllowanceCharges()
+        public IList<TradeCharge> GetTradeCharges()
         {
-            return this._TradeAllowanceCharges;
-        } // !GetTradeAllowanceCharges()
+            return this.TradeAllowanceCharges.Where(t => t is TradeCharge charge && charge.ChargeIndicator == true).Select(t => t as TradeCharge).ToList();
+        } // !GetTradeCharges()
 
 
         /// <summary>
@@ -1142,11 +1303,12 @@ namespace s2industries.ZUGFeRD
         /// <param name="percentage">Optional percentage</param>
         /// <param name="baseAmount">Optional base amount</param>
         /// <param name="actualAmount">Optional actual amount</param>
+        /// <param name="maturityDate">Optional `DateTime?`</param>
         public void AddTradePaymentTerms(string description, DateTime? dueDate = null,
             PaymentTermsType? paymentTermsType = null, int? dueDays = null,
             decimal? percentage = null, decimal? baseAmount = null, decimal? actualAmount = null, DateTime? maturityDate = null)
         {
-            _PaymentTerms.Add(new PaymentTerms()
+            PaymentTerms.Add(new PaymentTerms()
             {
                 Description = description,
                 DueDate = dueDate,
@@ -1167,7 +1329,7 @@ namespace s2industries.ZUGFeRD
         /// </summary>
         public void ClearTradePaymentTerms()
         {
-            _PaymentTerms.Clear();
+            PaymentTerms.Clear();
         } // !ClearTradePaymentTerms()
 
 
@@ -1179,7 +1341,7 @@ namespace s2industries.ZUGFeRD
         /// <returns>List of payment terms</returns>
         public IList<PaymentTerms> GetTradePaymentTerms()
         {
-            return _PaymentTerms;
+            return PaymentTerms;
         }
 
         /// <summary>
@@ -1190,12 +1352,14 @@ namespace s2industries.ZUGFeRD
         /// </summary>
         /// <param name="id">Preceding invoice number</param>
         /// <param name="IssueDateTime">Preceding invoice date</param>
-        public void AddInvoiceReferencedDocument(string id, DateTime? IssueDateTime = null)
+        /// <param name="TypeCode">Preceding invoice Type</param>
+        public void AddInvoiceReferencedDocument(string id, DateTime? IssueDateTime = null, InvoiceType? TypeCode = null)
         {
             this._InvoiceReferencedDocuments.Add(new InvoiceReferencedDocument()
             {
                 ID = id,
-                IssueDateTime = IssueDateTime
+                IssueDateTime = IssueDateTime,
+                TypeCode = TypeCode
             });
         }
 
@@ -1223,8 +1387,8 @@ namespace s2industries.ZUGFeRD
         /// <param name="grandTotalAmount">Total amount including tax</param>
         /// <param name="totalPrepaidAmount">Amount already paid</param>
         /// <param name="duePayableAmount">Amount due for payment</param>
-        /// <param name="roundingAmount">Rounding adjustment amount</param>
-        public void SetTotals(decimal? lineTotalAmount = null, decimal? chargeTotalAmount = null,
+        /// <param name="roundingAmount">Rounding adjustment amount</param>        
+        public void SetTotals(decimal lineTotalAmount, decimal? chargeTotalAmount = null,
                               decimal? allowanceTotalAmount = null, decimal? taxBasisAmount = null,
                               decimal? taxTotalAmount = null, decimal? grandTotalAmount = null,
                               decimal? totalPrepaidAmount = null, decimal? duePayableAmount = null,
@@ -1262,7 +1426,21 @@ namespace s2industries.ZUGFeRD
             decimal percent,
             decimal taxAmount,
             TaxTypes typeCode,
-            TaxCategoryCodes? categoryCode = null,
+            TaxCategoryCodes categoryCode,
+            decimal? allowanceChargeBasisAmount = null,
+            TaxExemptionReasonCodes? exemptionReasonCode = null,
+            string exemptionReason = null,
+            decimal? lineTotalBasisAmount = null)
+        {
+            return _AddApplicableTradeTax(basisAmount, percent, taxAmount, typeCode, categoryCode, allowanceChargeBasisAmount, exemptionReasonCode, exemptionReason, lineTotalBasisAmount);
+        } // !AddApplicableTradeTax()
+
+
+        internal Tax _AddApplicableTradeTax(decimal basisAmount,
+            decimal percent,
+            decimal taxAmount,
+            TaxTypes? typeCode,
+            TaxCategoryCodes? categoryCode,
             decimal? allowanceChargeBasisAmount = null,
             TaxExemptionReasonCodes? exemptionReasonCode = null,
             string exemptionReason = null,
@@ -1277,13 +1455,9 @@ namespace s2industries.ZUGFeRD
                 AllowanceChargeBasisAmount = allowanceChargeBasisAmount,
                 LineTotalBasisAmount = lineTotalBasisAmount,
                 ExemptionReasonCode = exemptionReasonCode,
-                ExemptionReason = exemptionReason
+                ExemptionReason = exemptionReason,
+                CategoryCode = categoryCode
             };
-
-            if ((categoryCode != null) && (categoryCode.Value != TaxCategoryCodes.Unknown))
-            {
-                tax.CategoryCode = categoryCode;
-            }
 
             this.Taxes.Add(tax);
             return tax;
@@ -1345,11 +1519,12 @@ namespace s2industries.ZUGFeRD
         /// <param name="version">ZUGFeRD version to use</param>
         /// <param name="profile">ZUGFeRD profile to use</param>
         /// <param name="format">Output format (CII or UBL)</param>
-        public void Save(Stream stream, ZUGFeRDVersion version = ZUGFeRDVersion.Version1, Profile profile = Profile.Basic, ZUGFeRDFormats format = ZUGFeRDFormats.CII)
+        /// <param name="options">Optional `InvoiceFormatOptions`</param>
+        public void Save(Stream stream, ZUGFeRDVersion version = ZUGFeRDVersion.Version23, Profile profile = Profile.Basic, ZUGFeRDFormats format = ZUGFeRDFormats.CII, InvoiceFormatOptions options = null)
         {
             this.Profile = profile;
             IInvoiceDescriptorWriter writer = _SelectInvoiceDescriptorWriter(version);
-            writer.Save(this, stream, format);
+            writer.Save(this, stream, format, options);
         } // !Save()
 
 
@@ -1360,11 +1535,12 @@ namespace s2industries.ZUGFeRD
         /// <param name="version">ZUGFeRD version to use</param>
         /// <param name="profile">ZUGFeRD profile to use</param>
         /// <param name="format">Output format (CII or UBL)</param>
-        public void Save(string filename, ZUGFeRDVersion version = ZUGFeRDVersion.Version1, Profile profile = Profile.Basic, ZUGFeRDFormats format = ZUGFeRDFormats.CII)
+        /// <param name="options">Optional `InvoiceFormatOptions`</param>
+        public void Save(string filename, ZUGFeRDVersion version = ZUGFeRDVersion.Version23, Profile profile = Profile.Basic, ZUGFeRDFormats format = ZUGFeRDFormats.CII, InvoiceFormatOptions options = null)
         {
             this.Profile = profile;
             IInvoiceDescriptorWriter writer = _SelectInvoiceDescriptorWriter(version);
-            writer.Save(this, filename, format);
+            writer.Save(this, filename, format, options);
         } // !Save()
 
 
@@ -1426,9 +1602,9 @@ namespace s2industries.ZUGFeRD
             }
 
             item.AssociatedDocument.Notes.Add(new Note(
-                content: comment,
-                subjectCode: SubjectCodes.Unknown,
-                contentCode: ContentCodes.Unknown
+                content: comment
+            // no subjectcode
+            // no contentcode
             ));
 
             this.TradeLineItems.Add(item);
@@ -1467,14 +1643,14 @@ namespace s2industries.ZUGFeRD
         /// <returns>Returns the instance of the trade line item. You might use this object to add details such as trade allowance charges</returns>
         public TradeLineItem AddTradeLineItem(string name,
                                     decimal netUnitPrice,
+                                    QuantityCodes unitCode,
                                     string description = null,
-                                    QuantityCodes unitCode = QuantityCodes.Unknown,
                                     decimal? unitQuantity = null,
                                     decimal? grossUnitPrice = null,
                                     decimal billedQuantity = 0,
                                     decimal? lineTotalAmount = null,
-                                    TaxTypes taxType = TaxTypes.Unknown,
-                                    TaxCategoryCodes categoryCode = TaxCategoryCodes.Unknown,
+                                    TaxTypes? taxType = null,
+                                    TaxCategoryCodes? categoryCode = null,
                                     decimal taxPercent = 0,
                                     string comment = null,
                                     GlobalID id = null,
@@ -1484,9 +1660,10 @@ namespace s2industries.ZUGFeRD
                                     DateTime? billingPeriodStart = null, DateTime? billingPeriodEnd = null
                                     )
         {
-            return AddTradeLineItem(lineID: _getNextLineId(),
-                            name: name,
-                            netUnitPrice: netUnitPrice,
+            return _AddTradeLineItem(
+                            lineID: _getNextLineId(),
+                            name,
+                            netUnitPrice,
                             description: description,
                             unitCode: unitCode,
                             unitQuantity: unitQuantity,
@@ -1541,14 +1718,14 @@ namespace s2industries.ZUGFeRD
         public TradeLineItem AddTradeLineItem(string lineID,
                                     string name,
                                     decimal netUnitPrice,
+                                    QuantityCodes unitCode,
                                     string description = null,
-                                    QuantityCodes unitCode = QuantityCodes.Unknown,
                                     decimal? unitQuantity = null,
                                     decimal? grossUnitPrice = null,
                                     decimal billedQuantity = 0,
                                     decimal? lineTotalAmount = null,
-                                    TaxTypes taxType = TaxTypes.Unknown,
-                                    TaxCategoryCodes categoryCode = TaxCategoryCodes.Unknown,
+                                    TaxTypes? taxType = null,
+                                    TaxCategoryCodes? categoryCode = null,
                                     decimal taxPercent = 0,
                                     string comment = null,
                                     GlobalID id = null,
@@ -1558,173 +1735,44 @@ namespace s2industries.ZUGFeRD
                                     DateTime? billingPeriodStart = null, DateTime? billingPeriodEnd = null
                                     )
         {
-            if (String.IsNullOrWhiteSpace(lineID))
-            {
-                throw new ArgumentException("LineID cannot be Null or Empty");
-            }
-            else
-            {
-                if (this.GetTradeLineItems()?.Any(p => p.AssociatedDocument.LineID.Equals(lineID, StringComparison.OrdinalIgnoreCase)) == true)
-                {
-                    throw new ArgumentException("LineID must be unique");
-                }
-            }
-
-            TradeLineItem newItem = new TradeLineItem(lineID)
-            {
-                GlobalID = id,
-                SellerAssignedID = sellerAssignedID,
-                BuyerAssignedID = buyerAssignedID,
-                Name = name,
-                Description = description,
-                UnitCode = unitCode,
-                UnitQuantity = unitQuantity,
-                GrossUnitPrice = grossUnitPrice,
-                NetUnitPrice = netUnitPrice,
-                BilledQuantity = billedQuantity,
-                LineTotalAmount = lineTotalAmount,
-                TaxType = taxType,
-                TaxCategoryCode = categoryCode,
-                TaxPercent = taxPercent,
-                BillingPeriodStart = billingPeriodStart,
-                BillingPeriodEnd = billingPeriodEnd
-            };
-
-            if (!String.IsNullOrWhiteSpace(comment))
-            {
-                newItem.AssociatedDocument.Notes.Add(new Note(comment, SubjectCodes.Unknown, ContentCodes.Unknown));
-            }
-
-            if (!String.IsNullOrWhiteSpace(deliveryNoteID) || deliveryNoteDate.HasValue)
-            {
-                newItem.SetDeliveryNoteReferencedDocument(deliveryNoteID, deliveryNoteDate);
-            }
-
-            if (!String.IsNullOrWhiteSpace(buyerOrderLineID) || buyerOrderDate.HasValue || !String.IsNullOrWhiteSpace(buyerOrderID))
-            {
-                newItem.SetOrderReferencedDocument(buyerOrderID, buyerOrderDate, buyerOrderLineID);
-            }
-
-            this.TradeLineItems.Add(newItem);
-            return newItem;
+            return _AddTradeLineItem(lineID: lineID,
+                                    name: name,
+                                    netUnitPrice: netUnitPrice,
+                                    description: description,
+                                    unitCode: unitCode,
+                                    unitQuantity: unitQuantity,
+                                    grossUnitPrice: grossUnitPrice,
+                                    billedQuantity: billedQuantity,
+                                    lineTotalAmount: lineTotalAmount,
+                                    taxType: taxType,
+                                    categoryCode: categoryCode,
+                                    taxPercent: taxPercent,
+                                    comment: comment,
+                                    id: id,
+                                    sellerAssignedID: sellerAssignedID,
+                                    buyerAssignedID: buyerAssignedID,
+                                    deliveryNoteID: deliveryNoteID,
+                                    deliveryNoteDate: deliveryNoteDate,
+                                    buyerOrderLineID: buyerOrderLineID,
+                                    buyerOrderID: buyerOrderID, // Extended!
+                                    buyerOrderDate: buyerOrderDate,
+                                    billingPeriodStart: billingPeriodStart,
+                                    billingPeriodEnd: billingPeriodEnd
+                                    );
         } // !AddTradeLineItem()
 
 
-        /// <summary>
-        /// Adds a new line to the invoice. The line id is generated automatically.
-        ///
-        /// Please note that this function returns the new trade line item object that you might use
-        /// in your code to add more detailed information to the trade line item.
-        /// </summary>
-        /// <param name="name">Item name</param>
-        /// <param name="description">Item description</param>
-        /// <param name="unitCode">Unit of measure code</param>
-        /// <param name="unitQuantity">Quantity per unit</param>
-        /// <param name="grossUnitPrice">Gross price per unit</param>
-        /// <param name="netUnitPrice">Net price per unit</param>
-        /// <param name="billedQuantity">Quantity being invoiced</param>
-        /// <param name="lineTotalAmount">net total including discounts and surcharges. This parameter is optional. If it is not filled, the line total amount is automatically calculated based on netUnitPrice and billedQuantity</param>
-        /// <param name="taxType">Type of tax</param>
-        /// <param name="categoryCode">Tax category</param>
-        /// <param name="taxPercent">Tax percentage</param>
-        /// <param name="comment">Optional comment</param>
-        /// <param name="id">Optional global ID</param>
-        /// <param name="sellerAssignedID">Seller's reference ID</param>
-        /// <param name="buyerAssignedID">Buyer's reference ID</param>
-        /// <param name="deliveryNoteID">Delivery note reference</param>
-        /// <param name="deliveryNoteDate">Delivery note date</param>
-        /// <param name="buyerOrderLineID">Buyer's order line reference</param>
-        /// <param name="buyerOrderID">Buyer's order reference</param>
-        /// <param name="buyerOrderDate">Order date</param>
-        /// <param name="billingPeriodStart">Start of billing period</param>
-        /// <param name="billingPeriodEnd">End of billing period</param>
-        /// <returns>Returns the instance of the trade line item. You might use this object to add details such as trade allowance charges</returns>
-        [Obsolete("Please note that netUnitPrice is mandatory. This function with optional netUnitPrice parameter will be removed in version 18.0")]
-        public TradeLineItem AddTradeLineItem(string name,
-                                    string description = null,
-                                    QuantityCodes unitCode = QuantityCodes.Unknown,
-                                    decimal? unitQuantity = null,
-                                    decimal? grossUnitPrice = null,
-                                    decimal? netUnitPrice = null,
-                                    decimal billedQuantity = 0,
-                                    decimal? lineTotalAmount = null,
-                                    TaxTypes taxType = TaxTypes.Unknown,
-                                    TaxCategoryCodes categoryCode = TaxCategoryCodes.Unknown,
-                                    decimal taxPercent = 0,
-                                    string comment = null,
-                                    GlobalID id = null,
-                                    string sellerAssignedID = "", string buyerAssignedID = "",
-                                    string deliveryNoteID = "", DateTime? deliveryNoteDate = null,
-                                    string buyerOrderLineID = "", string buyerOrderID = "", DateTime? buyerOrderDate = null,
-                                    DateTime? billingPeriodStart = null, DateTime? billingPeriodEnd = null
-                                    )
-        {
-            return AddTradeLineItem(lineID: _getNextLineId(),
-                            name: name,
-                            description: description,
-                            unitCode: unitCode,
-                            unitQuantity: unitQuantity,
-                            grossUnitPrice: grossUnitPrice,
-                            netUnitPrice: netUnitPrice,
-                            billedQuantity: billedQuantity,
-                            lineTotalAmount: lineTotalAmount,
-                            taxType: taxType,
-                            categoryCode: categoryCode,
-                            taxPercent: taxPercent,
-                            comment: comment,
-                            id: id,
-                            sellerAssignedID: sellerAssignedID,
-                            buyerAssignedID: buyerAssignedID,
-                            deliveryNoteID: deliveryNoteID,
-                            deliveryNoteDate: deliveryNoteDate,
-                            buyerOrderLineID: buyerOrderLineID,
-                            buyerOrderID: buyerOrderID, // Extended!
-                            buyerOrderDate: buyerOrderDate,
-                            billingPeriodStart: billingPeriodStart,
-                            billingPeriodEnd: billingPeriodEnd
-                            );
-        } // !AddTradeLineItem()
-
-
-        /// <summary>
-        /// Adds a new line to the invoice. The line id is passed as a parameter.
-        /// </summary>
-        /// <param name="lineID">Line identifier</param>
-        /// <param name="name">Item name</param>
-        /// <param name="description">Item description</param>
-        /// <param name="unitCode">Unit of measure code</param>
-        /// <param name="unitQuantity">Quantity per unit</param>
-        /// <param name="grossUnitPrice">Gross price per unit</param>
-        /// <param name="netUnitPrice">Net price per unit</param>
-        /// <param name="billedQuantity">Quantity being invoiced</param>
-        /// <param name="lineTotalAmount">Total line amount</param>
-        /// <param name="taxType">Type of tax</param>
-        /// <param name="categoryCode">Tax category</param>
-        /// <param name="taxPercent">Tax percentage</param>
-        /// <param name="comment">Optional comment</param>
-        /// <param name="id">Optional global ID</param>
-        /// <param name="sellerAssignedID">Seller's reference ID</param>
-        /// <param name="buyerAssignedID">Buyer's reference ID</param>
-        /// <param name="deliveryNoteID">Delivery note reference</param>
-        /// <param name="deliveryNoteDate">Delivery note date</param>
-        /// <param name="buyerOrderLineID">Buyer's order line reference</param>
-        /// <param name="buyerOrderID">Buyer's order reference</param>
-        /// <param name="buyerOrderDate">Order date</param>
-        /// <param name="billingPeriodStart">Start of billing period</param>
-        /// <param name="billingPeriodEnd">End of billing period</param>
-        /// <returns>Created trade line item</returns>
-        [Obsolete("Please note that netUnitPrice is mandatory. This function with optional netUnitPrice parameter will be removed in version 18.0")]
-        public TradeLineItem AddTradeLineItem(string lineID,
+        internal TradeLineItem _AddTradeLineItem(string lineID,
                                     string name,
+                                    decimal netUnitPrice,
                                     string description = null,
-                                    QuantityCodes unitCode = QuantityCodes.Unknown,
+                                    QuantityCodes? unitCode = null,
                                     decimal? unitQuantity = null,
                                     decimal? grossUnitPrice = null,
-                                    decimal? netUnitPrice = null,
                                     decimal billedQuantity = 0,
                                     decimal? lineTotalAmount = null,
-                                    TaxTypes taxType = TaxTypes.Unknown,
-                                    TaxCategoryCodes categoryCode = TaxCategoryCodes.Unknown,
+                                    TaxTypes? taxType = null,
+                                    TaxCategoryCodes? categoryCode = null,
                                     decimal taxPercent = 0,
                                     string comment = null,
                                     GlobalID id = null,
@@ -1754,7 +1802,7 @@ namespace s2industries.ZUGFeRD
                 Name = name,
                 Description = description,
                 UnitCode = unitCode,
-                UnitQuantity = unitQuantity,
+                NetQuantity = unitQuantity,
                 GrossUnitPrice = grossUnitPrice,
                 NetUnitPrice = netUnitPrice,
                 BilledQuantity = billedQuantity,
@@ -1768,7 +1816,7 @@ namespace s2industries.ZUGFeRD
 
             if (!String.IsNullOrWhiteSpace(comment))
             {
-                newItem.AssociatedDocument.Notes.Add(new Note(comment, SubjectCodes.Unknown, ContentCodes.Unknown));
+                newItem.AssociatedDocument.Notes.Add(new Note(comment));
             }
 
             if (!String.IsNullOrWhiteSpace(deliveryNoteID) || deliveryNoteDate.HasValue)
@@ -1826,12 +1874,24 @@ namespace s2industries.ZUGFeRD
         } // !AnyTradeLineItems()
 
 
+        public InvoiceDescriptor SetBillingPeriod(DateTime? billingPeriodStart, DateTime? billingPeriodEnd)
+        {
+            this.BillingPeriodStart = billingPeriodStart;
+            this.BillingPeriodEnd = billingPeriodEnd;
+            return this;
+        } // !SetBillingPeriod()
+
+
         /// <summary>
         /// Sets up payment means information
+        ///
+        /// In case of direct debit or SEPA direct debit (Lastschrift), you have to pass 'identifkationsnummer
+        /// (in German: Gläubiger ID, formatted as DE98ZZZxxxxxxxxxxx)
+        /// and mandatsnummer (sometimes called Mandatsreferenz).        
         /// </summary>
         /// <param name="paymentCode">Payment means type</param>
         /// <param name="information">Additional payment information</param>
-        /// <param name="identifikationsnummer">SEPA creditor identifier</param>
+        /// <param name="identifikationsnummer">SEPA creditor identifier (in German: Gläubiger ID, formatted as DE98ZZZxxxxxxxxxxx)</param>
         /// <param name="mandatsnummer">SEPA mandate reference</param>
         public void SetPaymentMeans(PaymentMeansTypeCodes paymentCode, string information = "", string identifikationsnummer = null, string mandatsnummer = null)
         {
@@ -1960,6 +2020,10 @@ namespace s2industries.ZUGFeRD
         } // !AddDebitorFinancialAccount()
 
 
+        /// <summary>
+        /// BT-91
+        /// </summary>
+        /// <param name="bankAccount"></param>
         internal void _AddDebitorFinancialAccount(BankAccount bankAccount)
         {
             this.DebitorBankAccounts.Add(bankAccount);
@@ -1968,6 +2032,8 @@ namespace s2industries.ZUGFeRD
 
         /// <summary>
         /// Gets all debitor financial accounts
+        ///
+        /// BT-91
         /// </summary>
         /// <returns>List of debitor financial accounts</returns>
         public List<BankAccount> GetDebitorFinancialAccounts()
@@ -1985,7 +2051,7 @@ namespace s2industries.ZUGFeRD
             return this.DebitorBankAccounts?.Any() == true;
         } // !AnyDebitorFinancialAccount()
 
-        
+
         /// <summary>
         /// Adds a receivable specified trade accounting account with ID and type code
         ///
@@ -2058,18 +2124,29 @@ namespace s2industries.ZUGFeRD
         /// <summary>
         /// List of tax registration numbers for the seller.
         ///
-        // BT-31
+        /// BT-31
         /// </summary>
-        /// <returns></returns>
         public List<TaxRegistration> GetSellerTaxRegistration()
         {
             return this.SellerTaxRegistration;
         } // !GetSellerTaxRegistration()
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
+        /// List of tax registration numbers for the seller's Tax representative.
+        ///
+        /// BT-63
+        /// </summary>        
+        public List<TaxRegistration> GetSellerTaxRepresentativeTaxRegistration()
+        {
+            return this.SellerTaxRepresentativeTaxRegistration;
+        } // !GetSellerTaxRepresentativeTaxRegistration()
+
+
+        /// <summary>
+        /// List of tax registration numbers for the ship-to party.
+        ///
+        /// BT-63
+        /// </summary>        
         public List<TaxRegistration> GetShipToTaxRegistration()
         {
             return this._ShipToTaxRegistration;
@@ -2098,10 +2175,12 @@ namespace s2industries.ZUGFeRD
 
         private string _getNextLineId()
         {
-            int? highestLineId = this.GetTradeLineItems()?.Select(i => {
+            int? highestLineId = this.GetTradeLineItems()?.Select(i =>
+            {
                 if (Int32.TryParse(i.AssociatedDocument?.LineID, out int id) == true)
                     return id;
-                else return 0; }
+                else return 0;
+            }
                 ).DefaultIfEmpty(0).Max() ?? 0;
             return highestLineId == null ? "1" : (highestLineId + 1).ToString();
         } // !_getNextLineId()

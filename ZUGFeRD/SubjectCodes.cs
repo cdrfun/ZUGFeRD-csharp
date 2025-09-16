@@ -29,11 +29,6 @@ namespace s2industries.ZUGFeRD
     public enum SubjectCodes
     {
         /// <summary>
-        /// Unknon/ invalid subject code
-        /// </summary>
-        Unknown,
-
-        /// <summary>
         /// Dangerous goods additional information
         /// </summary>
         /// Additional information concerning dangerous goods.
@@ -110,6 +105,17 @@ namespace s2industries.ZUGFeRD
         /// <summary>
         /// Grund der Steuerbefreiung
         /// </summary>
-        TXD
+        TXD,
+
+        /// <summary>
+        /// Instructions to the paying and/or accepting and/or negotiating bank
+        /// </summary>
+        AET,
+
+        /// <summary>
+        /// Order information
+        /// </summary>
+        COI
+        
     }
 }

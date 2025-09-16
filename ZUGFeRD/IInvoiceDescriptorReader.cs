@@ -80,22 +80,22 @@ namespace s2industries.ZUGFeRD
 
         protected bool _IsReadableByThisReaderVersion(Stream stream, IList<string> validURIs)
         {
-            long _oldStreamPosition = stream.Position;
+            long oldStreamPosition = stream.Position;
             stream.Position = 0;
             using (StreamReader reader = new StreamReader(stream, Encoding.UTF8, true, 1024, true))
             {
-                string data = reader.ReadToEnd().Replace(" ", "");
+                string data = reader.ReadToEnd().Replace(" ", String.Empty);
                 foreach (string validURI in validURIs)
                 {
                     if (data.IndexOf(String.Format(">{0}<", validURI), StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        stream.Position = _oldStreamPosition;
+                        stream.Position = oldStreamPosition;
                         return true;
                     }
                 }
             }
 
-            stream.Position = _oldStreamPosition;
+            stream.Position = oldStreamPosition;
             return false;
         } // !_IsReadableByThisReaderVersion()
     }

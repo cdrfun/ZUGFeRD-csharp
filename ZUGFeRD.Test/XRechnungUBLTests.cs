@@ -32,6 +32,7 @@ namespace s2industries.ZUGFeRD.Test
         private InvoiceProvider _InvoiceProvider = new InvoiceProvider();
         private ZUGFeRDVersion _Version = ZUGFeRDVersion.Version23;
 
+        
         [TestMethod]
         public void TestParentLineId()
         {
@@ -150,19 +151,8 @@ namespace s2industries.ZUGFeRD.Test
         {
             InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
 
-            desc.TradeLineItems[0].ApplicableProductCharacteristics = new ApplicableProductCharacteristic[]
-                    {
-                        new ApplicableProductCharacteristic()
-                        {
-                            Description = "Test Description",
-                            Value = "1.5 kg"
-                        },
-                        new ApplicableProductCharacteristic()
-                        {
-                            Description = "UBL Characterstics 2",
-                            Value = "3 kg"
-                        },
-                    }.ToList();
+            desc.TradeLineItems[0].AddApplicableProductCharacteristic("Test Description", "1.5 kg");
+            desc.TradeLineItems[0].AddApplicableProductCharacteristic("UBL Characterstics 2", "3 kg");
 
             MemoryStream ms = new MemoryStream();
 
@@ -245,7 +235,7 @@ namespace s2industries.ZUGFeRD.Test
 
             InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
 
-            Tax tax = loadedInvoice.Taxes.FirstOrDefault(t => t.TypeCode == TaxTypes.LOC);
+            Tax? tax = loadedInvoice.Taxes.FirstOrDefault(t => t.TypeCode == TaxTypes.LOC);
             Assert.IsNotNull(tax);
             Assert.AreEqual(basisAmount, tax.BasisAmount);
             Assert.AreEqual(percent, tax.Percent);
@@ -258,22 +248,17 @@ namespace s2industries.ZUGFeRD.Test
         {
             InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
 
-            // Test Values
-            bool isDiscount = true;
+            // Test Values            
             decimal? basisAmount = 123.45m;
             CurrencyCodes currency = CurrencyCodes.EUR;
             decimal actualAmount = 12.34m;
-            string reason = "Gutschrift";
-            AllowanceReasonCodes reasonCode = AllowanceReasonCodes.Packaging;
+            string reason = "Besondere Vereinbarung";
+            AllowanceReasonCodes reasonCode = AllowanceReasonCodes.SpecialAgreement;
             TaxTypes taxTypeCode = TaxTypes.VAT;
             TaxCategoryCodes taxCategoryCode = TaxCategoryCodes.AA;
             decimal taxPercent = 19.0m;
 
-            desc.AddTradeAllowanceCharge(isDiscount, basisAmount, currency, actualAmount, reason, taxTypeCode, taxCategoryCode, taxPercent, reasonCode);
-
-            desc.TradeLineItems[0].AddTradeAllowanceCharge(true, CurrencyCodes.EUR, 100, 10, "test", reasonCode);
-
-            TradeAllowanceCharge? testAllowanceCharge = desc.GetTradeAllowanceCharges().FirstOrDefault();
+            desc.AddTradeAllowance(basisAmount, currency, actualAmount, reason, taxTypeCode, taxCategoryCode, taxPercent, reasonCode);
 
             MemoryStream ms = new MemoryStream();
 
@@ -282,18 +267,35 @@ namespace s2industries.ZUGFeRD.Test
 
             InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
 
-            TradeAllowanceCharge loadedAllowanceCharge = loadedInvoice.GetTradeAllowanceCharges()[0];
+            TradeAllowance tradeAllowance = loadedInvoice.GetTradeAllowances().FirstOrDefault();
 
-            Assert.AreEqual(loadedInvoice.GetTradeAllowanceCharges().Count(), 1);
-            Assert.AreEqual(loadedAllowanceCharge.ChargeIndicator, !isDiscount, message: "isDiscount");
-            Assert.AreEqual(loadedAllowanceCharge.BasisAmount, basisAmount, message: "basisAmount");
-            Assert.AreEqual(loadedAllowanceCharge.Currency, currency, message: "currency");
-            Assert.AreEqual(loadedAllowanceCharge.Amount, actualAmount, message: "actualAmount");
-            Assert.AreEqual(loadedAllowanceCharge.Reason, reason, message: "reason");
-            Assert.AreEqual(loadedAllowanceCharge.ReasonCode, reasonCode, message: "reasonCode");
-            Assert.AreEqual(loadedAllowanceCharge.Tax.TypeCode, taxTypeCode, message: "taxTypeCode");
-            Assert.AreEqual(loadedAllowanceCharge.Tax.CategoryCode, taxCategoryCode, message: "taxCategoryCode");
-            Assert.AreEqual(loadedAllowanceCharge.Tax.Percent, taxPercent, message: "taxPercent");
+            Assert.IsNotNull(tradeAllowance);
+            Assert.AreEqual(tradeAllowance.ChargeIndicator, false, message: "isDiscount");
+            Assert.AreEqual(tradeAllowance.BasisAmount, basisAmount, message: "basisAmount");
+            Assert.AreEqual(tradeAllowance.Currency, currency, message: "currency");
+            Assert.AreEqual(tradeAllowance.Amount, actualAmount, message: "actualAmount");
+            Assert.AreEqual(tradeAllowance.Reason, reason, message: "reason");
+            Assert.AreEqual(tradeAllowance.ReasonCode, reasonCode, message: "reasonCode");
+            Assert.AreEqual(tradeAllowance.Tax.TypeCode, taxTypeCode, message: "taxTypeCode");
+            Assert.AreEqual(tradeAllowance.Tax.CategoryCode, taxCategoryCode, message: "taxCategoryCode");
+            Assert.AreEqual(tradeAllowance.Tax.Percent, taxPercent, message: "taxPercent");
+
+
+
+
+
+            TradeAllowance loadedAllowance = loadedInvoice.GetTradeAllowances().FirstOrDefault();
+
+            Assert.IsNotNull(loadedAllowance);
+            Assert.AreEqual(loadedAllowance.ChargeIndicator, false, message: "isDiscount");
+            Assert.AreEqual(loadedAllowance.BasisAmount, basisAmount, message: "basisAmount");
+            Assert.AreEqual(loadedAllowance.Currency, currency, message: "currency");
+            Assert.AreEqual(loadedAllowance.Amount, actualAmount, message: "actualAmount");
+            Assert.AreEqual(loadedAllowance.Reason, reason, message: "reason");
+            Assert.AreEqual(loadedAllowance.ReasonCode, reasonCode, message: "reasonCode");
+            Assert.AreEqual(loadedAllowance.Tax.TypeCode, taxTypeCode, message: "taxTypeCode");
+            Assert.AreEqual(loadedAllowance.Tax.CategoryCode, taxCategoryCode, message: "taxCategoryCode");
+            Assert.AreEqual(loadedAllowance.Tax.Percent, taxPercent, message: "taxPercent");
 
         } // !TestAllowanceChargeOnDocumentLevel
 
@@ -1114,7 +1116,7 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(desc.Buyer.Name, "Rechnungs Roulette GmbH & Co KG");
             Assert.AreEqual(desc.Buyer.City, "Klein Schlappstadt a.d. Lusche");
             Assert.AreEqual(desc.Buyer.Postcode, "12345");
-            Assert.AreEqual(desc.Buyer.Country, (CountryCodes)276);
+            Assert.AreEqual(desc.Buyer.Country, CountryCodes.DE);
             Assert.AreEqual(desc.Buyer.Street, "Beispielgasse 17b");
             Assert.AreEqual(desc.Buyer.SpecifiedLegalOrganization.TradingBusinessName, "Rechnungs Roulette GmbH & Co KG");
 
@@ -1125,7 +1127,7 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(desc.Seller.Name, "Harry Hirsch Holz- und Trockenbau");
             Assert.AreEqual(desc.Seller.City, "Klein Schlappstadt a.d. Lusche");
             Assert.AreEqual(desc.Seller.Postcode, "12345");
-            Assert.AreEqual(desc.Seller.Country, (CountryCodes)276);
+            Assert.AreEqual(desc.Seller.Country, CountryCodes.DE);
             Assert.AreEqual(desc.Seller.Street, "Beispielgasse 17a");
             Assert.AreEqual(desc.Seller.SpecifiedLegalOrganization.TradingBusinessName, "Harry Hirsch Holz- und Trockenbau");
 
@@ -1172,7 +1174,7 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(desc.CreditorBankAccounts[0].BIC, "INGDDEFFXXX");
             Assert.AreEqual(desc.CreditorBankAccounts[0].Name, "Harry Hirsch");
 
-            Assert.AreEqual(desc.PaymentMeans.TypeCode, (PaymentMeansTypeCodes)30);
+            Assert.AreEqual(desc.PaymentMeans.TypeCode, PaymentMeansTypeCodes.CreditTransferNonSEPA);
         } // !TestReferenceXRechnung21UBL()
 
 
@@ -1290,5 +1292,63 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(desc.GetTradeLineItems().Last().BilledQuantity, 42);
             Assert.AreEqual(desc.GetTradeLineItems().Last().UnitCode, QuantityCodes.XPP);
         } // !TestBasicCreditNote()
+
+
+        /// <summary>
+        /// UBL credit notes could have the tag "ns0"
+        /// </summary>
+        [TestMethod]
+        public void TestCreaditNoteTagNS0()
+        {
+            string path = @"..\..\..\..\demodata\xRechnung\maxRechnung_creditnote.xml";
+            path = _makeSurePathIsCrossPlatformCompatible(path);
+
+            InvoiceDescriptor desc = InvoiceDescriptor.Load(path);
+
+            Assert.AreEqual(desc.Profile, Profile.XRechnung);
+            Assert.AreEqual(desc.InvoiceNo, "1234567890");
+            Assert.AreEqual(desc.InvoiceDate, new DateTime(2018, 10, 15));
+        }
+
+        /// <summary>
+        /// Test DateTime format "yyyy-mm-dd+hh:mm" / "yyyy-MM-ddXXX"
+        /// </summary>
+        [TestMethod]
+        public void TestNonStandardDateTimeFormat()
+        {
+            string path = @"..\..\..\..\demodata\xRechnung\01.01a-INVOICE_ubl.xml";
+            path = _makeSurePathIsCrossPlatformCompatible(path);
+
+            InvoiceDescriptor desc = InvoiceDescriptor.Load(path);
+
+            Assert.AreEqual(desc.InvoiceDate, new DateTime(2016, 04, 04));
+        } // !TestNonStandardDateTimeFormat()
+
+
+        [TestMethod]
+        public void TestSellerPartyDescription()
+        {
+            string path = @"..\..\..\..\demodata\xRechnung\maxRechnung_creditnote.xml";
+            path = _makeSurePathIsCrossPlatformCompatible(path);
+
+            InvoiceDescriptor desc = InvoiceDescriptor.Load(path);
+
+            Assert.AreEqual(desc.Seller.Description, $"Weitere rechtliche" + Environment.NewLine + "\t\t\t\t\tInformationen");
+        } // !TestSellerPartyDescription()
+
+
+        [TestMethod]
+        public void TestBillingPeriod()
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+            desc.BillingPeriodStart = DateTime.Today;
+            desc.BillingPeriodEnd = DateTime.Today.AddDays(30);
+            MemoryStream ms = new MemoryStream();
+
+            desc.Save(ms, ZUGFeRDVersion.Version23, Profile.XRechnung, ZUGFeRDFormats.UBL);
+            ms.Seek(0, SeekOrigin.Begin);
+
+            InvoiceDescriptor loadedDesc = InvoiceDescriptor.Load(ms);
+        } // !TestBillingPeriod()
     }
 }

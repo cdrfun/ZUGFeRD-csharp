@@ -22,7 +22,7 @@ The library is meant to be as simple as possible, however it is not straight for
 # Consulting/ Commercial Support
 *Auf Deutsch:* Falls Sie kommerzielle Unterstützung bei der Umsetzung von ZUGFeRD/ XRechnung in Ihrem Unternehmen benötigen, schreiben Sie mir gerne an stephan@s2-industries.com
 
-*In English* In case you you consulting or commercial support for implementing ZUGFeRD/ XRechnung/ Factur-X in your company, please send an email to stephan@s2-industries.com
+*In English* In case you need consulting or commercial support for implementing ZUGFeRD/ XRechnung/ Factur-X in your company, please send an email to stephan@s2-industries.com
 
 # Relationship between the different standards
 Since there are a lot of terms and standards around electronic invoices, I'd like to lay out my understanding:
@@ -116,7 +116,7 @@ To let the library create line ids, you can use:
 
 ```csharp
 InvoiceDescriptor desc = InvoiceDescriptor.CreateInvoice("471102", new DateTime(2013, 6, 5), CurrencyCodes.EUR, "GE2020211-471102");
-desc.AddTradeLineItem("Item name", "Detail description", QuantityCodes.C62, ....);
+desc.AddTradeLineItem("Item name", 23.99m, QuantityCodes.H87, "Detail description", ....);
 ```
 
 This will generate an invoice with trade line item numbered as '1'.
@@ -125,8 +125,8 @@ To pass pre-defined line ids, this is the way to go:
 
 ```csharp
 InvoiceDescriptor desc = InvoiceDescriptor.CreateInvoice("471102", new DateTime(2013, 6, 5), CurrencyCodes.EUR, "GE2020211-471102");
-desc.AddTradeLineItem(lineID: "0001", "Item name", "Detail description", QuantityCodes.C62, ....);
-desc.AddTradeLineItem(lineID: "0002", "Item name", "Detail description", QuantityCodes.C62, ....);
+desc.AddTradeLineItem(lineID: "0001", 23.99m, QuantityCodes.H87, "Item name", "Detail description", ....);
+desc.AddTradeLineItem(lineID: "0002", 49.99m, QuantityCodes.H87, "Item name", "Detail description", ....);
 ```
 
 which will generate an invoice with two trade line items, with the first one as number '0001' and the second one as number '0002'.
@@ -167,9 +167,9 @@ The library supports setting a status code and a reason for each line item. This
 // Example: Adding a trade line item with a specific status and reason
 TradeLineItem tradeLineItem3 = desc.AddTradeLineItem(
     name: "Abschlagsrechnung vom 01.01.2024",
-    billedQuantity: -1m,
-    unitCode: QuantityCodes.C62,
     netUnitPrice: 500,
+    unitCode: QuantityCodes.H87,
+    billedQuantity: -1m,
     categoryCode: TaxCategoryCodes.S,
     taxPercent: 19.0m,
     taxType: TaxTypes.VAT
@@ -323,12 +323,37 @@ descriptor.Save("zugferd-v23.xml", ZUGFeRDVersion.Version23, Profile.Basic); // 
 descriptor.Save("zugferd-v23-xrechnung.xml", ZUGFeRDVersion.Version23, Profile.XRechnung); // save as version 2.3, profile XRechnung
 ```
 
+# Configuration
+In order to make the xml more readable for humans, you can optionally add comments to the xml file (currently available only in German).
+If you like to enable these comments, you can use the options builder and pass the resulting options to the Save() command:
+
+```csharp
+InvoiceFormatOptions options = InvoiceOptionsBuilder
+.Create()
+.EnableXmlComments(true)
+.Build();
+desc.Save(ms, version, profile, format, options);
+```
+
+This will work with all ZUGFeRD versions and also with XRechnung UBL files.
+
+Another new feature in version 18.0.0 of the library is cleaning of invalid xml characters or throwing an exception when invalid xml characters are found.
+Can you enable automatic cleaning of xml files using:
+
+```csharp
+InvoiceFormatOptions options = InvoiceOptionsBuilder
+.Create()
+.AutomaticallyCleanInvalidCharacters()
+.Build();
+desc.Save(ms, version, profile, format, options);
+```
+
+Otherweise, an exception will be thrown once an invalid character is written to the xml file.
 
 # Working with ZUGFeRD PDF files
 The ZUGFeRD-csharp component has a sister component which relies on [PDFSharp](https://github.com/empira/PDFsharp) to read and write PDF files.
-It is still in alpha and needs support for making the PDF more compliant.
 
-Download the alpha version here:
+Download the package here:
 
 [![NuGet](https://img.shields.io/nuget/v/ZUGFeRD.PDF-csharp?color=blue)](https://www.nuget.org/packages/ZUGFeRD.PDF-csharp/)
 
@@ -336,15 +361,21 @@ The component makes loading the invoice from a pdf as easy as this:
 
 ```csharp
 InvoiceDescriptor desc = await InvoicePdfProcessor.LoadFromPdfAsync("invoice.pdf");
+
+// alternatively, you can invoke the function in synchronous manner:
+InvoiceDescriptor desc = InvoicePdfProcessor.LoadFromPdf("invoice.pdf");
 ```
 
 Converting a PDF file to a ZUGFeRD PDF/A is almost as simple:
 
 ```csharp
 InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("471102", new DateTime(2018, 03, 05), CurrencyCodes.EUR);
-...
+// ... fill the descriptor
 
 await InvoicePdfProcessor.SaveToPdfAsync("zugferd-invoice.pdf", ZUGFeRDVersion.Version23, Profile.Comfort, ZUGFeRDFormats.CII, "input-invoice.pdf", descriptor);
+
+// alternatively, you can invoke the function in synchronous manner:
+InvoicePdfProcessor.SaveToPdf("zugferd-invoice.pdf", ZUGFeRDVersion.Version23, Profile.Comfort, ZUGFeRDFormats.CII, "input-invoice.pdf", descriptor);
 ```
 
 

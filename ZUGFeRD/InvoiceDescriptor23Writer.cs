@@ -29,7 +29,8 @@ namespace s2industries.ZUGFeRD
 {
     internal class InvoiceDescriptor23Writer : IInvoiceDescriptorWriter
     {
-        private readonly Profile ALL_PROFILES = Profile.Minimum | Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung;
+        // Is currently unused, therefore commented out.
+        //private readonly Profile ALL_PROFILES = Profile.Minimum | Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung;
 
 
         /// <summary>
@@ -39,7 +40,8 @@ namespace s2industries.ZUGFeRD
         /// <param name="descriptor">The invoice object that should be saved</param>
         /// <param name="stream">The target stream for saving the invoice</param>
         /// <param name="format">Format of the target file</param>
-        public override void Save(InvoiceDescriptor descriptor, Stream stream, ZUGFeRDFormats format = ZUGFeRDFormats.CII)
+        /// <param name="options">Optional `InvoiceFormatOptions`</param>
+        public override void Save(InvoiceDescriptor descriptor, Stream stream, ZUGFeRDFormats format = ZUGFeRDFormats.CII, InvoiceFormatOptions options = null)
         {
             IInvoiceDescriptorWriter writer = null;
 
@@ -57,7 +59,7 @@ namespace s2industries.ZUGFeRD
                 throw new UnsupportedException($"Profile {descriptor.Profile.ToString()} and format {format.EnumToString()} is not supported.");
             }
 
-            writer.Save(descriptor, stream, format);
+            writer.Save(descriptor, stream, format, options);
         } // !Save()
 
 
@@ -71,7 +73,7 @@ namespace s2industries.ZUGFeRD
 
             if (descriptor.Profile != Profile.Extended) // check tax types, only extended profile allows tax types other than vat
             {
-                if (!descriptor.GetTradeLineItems().All(l => l.TaxType.Equals(TaxTypes.VAT) || l.TaxType.Equals(TaxTypes.Unknown)))
+                if (!descriptor.GetTradeLineItems().All(l => !l.TaxType.HasValue || l.TaxType.Equals(TaxTypes.VAT)))
                 {
                     if (throwExceptions) { throw new UnsupportedException("Tax types other than VAT only possible with extended profile."); }
                     return false;

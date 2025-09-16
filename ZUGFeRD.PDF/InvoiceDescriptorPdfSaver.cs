@@ -29,7 +29,6 @@ using System.Text;
 using System.Threading.Tasks;
 using PdfSharp.Drawing;
 using System.Linq;
-using SkiaSharp;
 
 
 
@@ -57,7 +56,7 @@ namespace s2industries.ZUGFeRD.PDF
 
             Stream temp = _CreateFacturXStream(pdfSourceStream, xmlSourceStream, version, profile, invoiceFilename, password: password);
             await temp.CopyToAsync(targetStream);
-        } // !SaveAsync()        
+        } // !SaveAsync()
 
 
         internal static async Task SaveAsync(string targetPath, ZUGFeRDVersion version, Profile profile, ZUGFeRDFormats format, string pdfSourcePath, InvoiceDescriptor descriptor, string password = null)
@@ -204,16 +203,24 @@ namespace s2industries.ZUGFeRD.PDF
             var xmpVersion = "";            
             switch (version)
             {
-                case ZUGFeRDVersion.Version1: xmpVersion = "1.0"; break;
-                case ZUGFeRDVersion.Version20: xmpVersion = "2p0"; break;
-                case ZUGFeRDVersion.Version23: xmpVersion = "1.0"; break; // ZUGFeRD 2.3 = Factur-X 1.0
+                case ZUGFeRDVersion.Version1:
+                    xmpVersion = "1.0";
+                    break;
+                case ZUGFeRDVersion.Version20:
+                    xmpVersion = "2p0";
+                    break;
+                case ZUGFeRDVersion.Version23:
+                    xmpVersion = (profile == Profile.XRechnung) ? "3.0" : "1.0"; // ZUGFeRD 2.3 = Factur-X 1.0
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(version), "Unknown version");
             }
 
             var metadataResource = "";
             switch (version)
             {
                 case ZUGFeRDVersion.Version1: metadataResource = "s2industries.ZUGFeRD.PDF.Resources.PdfMetadataTemplate-1.0.xml"; break;
-                case ZUGFeRDVersion.Version20: metadataResource = "s2industries.ZUGFeRD.PDF.Resources.PdfMetadataTemplate-1.0.xml"; break;
+                case ZUGFeRDVersion.Version20: metadataResource = "s2industries.ZUGFeRD.PDF.Resources.PdfMetadataTemplate-2.0.xml"; break;
                 case ZUGFeRDVersion.Version23: metadataResource = "s2industries.ZUGFeRD.PDF.Resources.PdfMetadataTemplate-2.3.xml"; break;
             }
 
@@ -318,10 +325,12 @@ namespace s2industries.ZUGFeRD.PDF
 
         private static List<XFont> _LoadFonts(PdfDocument pdfDocument)
         {
+            IEnumerable<InstalledFont> availableFontFamilies = FontInfoProvider.GetInstalledFonts();
+
             List<XFont> retval = new List<XFont>();
 
-            var fontManager = SKFontManager.Default;
-            var availableFamilies = fontManager.FontFamilies;
+         //   var fontManager = SKFontManager.Default;
+          //  var availableFamilies = fontManager.FontFamilies;
 
             // Postscript to TrueType mapping as the PDF file contains the Postscript names of the font
             var postScriptToTrueTypeMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -358,7 +367,8 @@ namespace s2industries.ZUGFeRD.PDF
 
                     _ExtractFontValues(baseFont, fonts, out string fontFamily, out XFontStyleEx fontStyle);
 
-                    bool existsInSystem = availableFamilies.Any(f => f.Equals(fontFamily, StringComparison.OrdinalIgnoreCase));
+                    // bool existsInSystem = availableFamilies.Any(f => f.Equals(fontFamily, StringComparison.OrdinalIgnoreCase));
+                    bool existsInSystem = availableFontFamilies.Any(f => f.FamilyName.Equals(fontFamily, StringComparison.OrdinalIgnoreCase));                                          
 
 
                     if (!existsInSystem && (postScriptToTrueTypeMap.TryGetValue(fontFamily, out string tempFontName)))
